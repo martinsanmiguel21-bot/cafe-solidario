@@ -35,7 +35,7 @@
 *,*::before,*::after{box-sizing:inherit;-webkit-tap-highlight-color:transparent}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--ink)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--bg)}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:none;padding:0;text-align:inherit}
 a{color:inherit}
@@ -317,46 +317,35 @@ details.how[open] summary::after{content:"−"}
 details.how p{margin-top:10px;line-height:1.55}
 @media (max-width:420px){.pass-bot{flex-direction:column;align-items:flex-start}.qr{width:160px;height:160px;align-self:center}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* real */
+.land{display:grid;gap:10px;margin-top:14px}
+.land .r{background:var(--surface);border-radius:18px;box-shadow:var(--shadow)}
+.load{display:grid;place-items:center;min-height:60vh;color:var(--ink2)}
+.spin{width:34px;height:34px;border-radius:50%;border:3px solid var(--sunk);border-top-color:var(--green2);animation:sp 0.8s linear infinite;margin:0 auto 10px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.refresh{position:fixed;right:16px;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:24}
 </style>
 </head>
 <body>
-<div class="demo" role="region" aria-label="Controles del prototipo">
-  <span class="lbl">Prototipo, ver como</span>
-  <div class="seg" data-seg id="roles"><button data-role="alumno">Alumno</button><button data-role="apoderado">Apoderado</button><button data-role="coord">Coordinación</button><i></i></div>
-  <button class="reset" id="reset">Reiniciar</button>
-</div>
-<div id="app"></div>
-<div class="notif" id="notif" role="status" aria-live="polite"></div>
+<div id="app"><div class="load"><div><div class="spin"></div>Cargando…</div></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
 /* =========================================================
-   CAFÉ SOLIDARIO — prototipo v3
-   Todo se guarda solo en este navegador para poder probar.
-   En la versión real, los datos viven en Google Sheets
-   (Apps Script) y los códigos llegan por correo y SMS de verdad.
+   CAFÉ SOLIDARIO — versión conectada a Supabase
    ========================================================= */
 const CONFIG = {
-  colegios: {
-    vd: { nombre:'Verbo Divino', dominio:'verbo.cl' },        // <- dominio real
-    vm: { nombre:'Villa María',  dominio:'villamaria.cl' },   // <- dominio real
-  },
-  coordinadores: [   // solo estos correos pueden entrar al panel
-    { email:'coordinacion@verbo.cl', nombre:'Coordinación CAA', colegio:'vd' },
-    { email:'pastoral@villamaria.cl', nombre:'Pastoral Villa María', colegio:'vm' },
-  ],
-  vigencia: new Date(2026, 11, 31),
-  sesionMin: 60,          // la sesión dura mientras la app esté abierta, con un máximo de 60 minutos
-  bajaSinFalta: 12,       // puedes bajarte sin falta hasta las 12:00 del día de la salida
-  faltasParaBajar: 2,     // con 2 faltas en 60 días, la prioridad baja
-  diasPrioridadBaja: 30,
+  supabaseUrl: 'https://nconhqyzfcetpxvycibz.supabase.co',
+  supabaseKey: 'sb_publishable_NwPvBjFEq_p9ae2brcwSKA_ez4UGZIz',   // clave pública (publishable). Nunca pongas aquí la secret.
+  sesionMin: 60,                       // la sesión dura mientras la app esté abierta, máximo 60 minutos
+  colegios: { vd:{ nombre:'Verbo Divino' }, vm:{ nombre:'Villa María' } },
   autorizacion: {
-    vd: ['Autorizo a mi hijo o hija a participar en Café Solidario, actividad organizada por el Centro de Alumnos del Colegio del Verbo Divino junto al Colegio Villa María.', 'Las salidas son los días publicados por la coordinación, con salida y regreso desde el punto de encuentro indicado en cada fecha y con acompañamiento de adultos responsables.', 'Esta autorización vale para todas las fechas hasta el 31 de diciembre de 2026 y puedo revocarla en cualquier momento.'],
-    vm: ['Autorizo a mi hija a participar en Café Solidario, actividad conjunta del Colegio Villa María y el Colegio del Verbo Divino.', 'Las salidas son los días publicados por la coordinación, con salida y regreso desde el punto de encuentro indicado en cada fecha y con acompañamiento de adultos responsables de ambos colegios.', 'Esta autorización vale para todas las fechas hasta el 31 de diciembre de 2026 y puedo revocarla en cualquier momento.'],
+    vd: ['Autorizo a mi hijo o hija a participar en Café Solidario, actividad organizada por el Centro de Alumnos del Colegio del Verbo Divino junto al Colegio Villa María.', 'Las salidas son los días publicados por la coordinación, con salida y regreso desde el punto de encuentro indicado en cada fecha y con acompañamiento de adultos responsables.', 'Esta autorización vale para todas las fechas hasta el 31 de diciembre y puedo revocarla en cualquier momento.'],
+    vm: ['Autorizo a mi hija a participar en Café Solidario, actividad conjunta del Colegio Villa María y el Colegio del Verbo Divino.', 'Las salidas son los días publicados por la coordinación, con salida y regreso desde el punto de encuentro indicado en cada fecha y con acompañamiento de adultos responsables de ambos colegios.', 'Esta autorización vale para todas las fechas hasta el 31 de diciembre y puedo revocarla en cualquier momento.'],
   },
 };
-
 /* ---------- utilidades ---------- */
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const MES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
@@ -391,14 +380,7 @@ const P = {
   chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>', out:'<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/>', edit:'<path d="M4 20h4L19 9l-4-4L4 16Z"/><path d="m13.5 6.5 4 4"/>',
 };
 const ic = (n, c = '') => `<svg class="ic ${c}" viewBox="0 0 24 24" aria-hidden="true">${P[n]}</svg>`;
-let tt; function toast(m){ const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 2600); }
-let nt; function notif(kind, to, codigo){
-  const n = $('#notif'), mail = kind === 'mail';
-  n.innerHTML = `<div class="ni" style="background:${mail ? '#1A73E8' : '#34C759'}">${ic(mail ? 'mail' : 'phone')}</div><div style="min-width:0">
-    <small>${mail ? 'Correo' : 'Mensajes'} · ahora · simulado para el prototipo</small>
-    <b>${mail ? 'Café Solidario' : 'CAFESOLIDARIO'}</b><p>Tu código es <span class="code">${codigo}</span>. Vence en 10 min.</p><small>Para ${esc(to)}</small></div>`;
-  n.classList.add('on'); clearTimeout(nt); nt = setTimeout(() => n.classList.remove('on'), 9000);
-}
+let tt; function toast(m){ const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 2800); }
 function rutOk(r){
   const c = String(r).replace(/[^0-9kK]/g,'').toUpperCase(); if (c.length < 8) return false;
   const body = c.slice(0,-1), dv = c.slice(-1); let s = 0, m = 2;
@@ -409,326 +391,287 @@ const fmtRut = r => { const c = String(r).replace(/[^0-9kK]/g,'').toUpperCase();
 const hm = v => { const m = String(v).trim().match(/^(\d{1,2})[:.h]?(\d{2})$/); if (!m) return ''; const h = +m[1], mi = +m[2]; return h < 24 && mi < 60 ? `${String(h).padStart(2,'0')}:${String(mi).padStart(2,'0')}` : ''; };
 const tapaTel = t => String(t).replace(/(\+?\d{2,3})\d+(\d{3})$/, '$1 •••• $2');
 
+
+/* ---------- conexión ---------- */
+const sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey, {
+  auth:{ storage:window.sessionStorage, persistSession:true, autoRefreshToken:true, detectSessionInUrl:false },
+});
+const hhmm = ts => { const d = new Date(ts); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
+const t5 = t => String(t || '').slice(0, 5);
+const nomCol = c => (CONFIG.colegios[c] || {}).nombre || c;
+function msgError(e){
+  const m = String((e && (e.message || e.error_description)) || e || '');
+  if (/expired|invalid/i.test(m) && /token|otp/i.test(m)) return 'Código incorrecto o vencido';
+  if (/security purposes|rate limit|after \d+ seconds/i.test(m)) return 'Espera unos segundos antes de pedir otro código';
+  if (/Failed to fetch|NetworkError/i.test(m)) return 'Sin conexión. Revisa tu internet';
+  if (/Error sending|smtp|email/i.test(m) && /send/i.test(m)) return 'No pudimos enviar el correo. Avísale a la coordinación';
+  return m || 'Algo salió mal';
+}
+async function q(p){ const { data, error } = await p; if (error) throw error; return data; }
+async function rpc(fn, args){ return q(sb.rpc(fn, args || {})); }
+
 /* ---------- estado ---------- */
-const KEY = 'cafe-solidario-proto-v3', SKEY = 'cafe-solidario-sesion-v3';
-function proximosMiercoles(n, desde = 0){
-  const d = hoy(); let k = (3 - d.getDay() + 7) % 7; d.setDate(d.getDate() + k + desde * 7);
-  return Array.from({ length:n }, (_, i) => { const x = new Date(d); x.setDate(d.getDate() + i * 7); return iso(x); });
-}
-function nuevaFecha(f, extra = {}){
-  return Object.assign({ id:rid(8), fecha:f, inicio:S.ajustes.inicio, fin:S.ajustes.fin, lugar:S.ajustes.lugar, cupos:{ ...S.ajustes.cupos }, estado:'abierta', motivo:'', nota:'' }, extra);
-}
-function seed(){
-  S = { ajustes:{ inicio:'15:30', fin:'18:30', lugar:'Portería principal del Verbo Divino', cupos:{ vd:5, vm:5 }, horas:3 } };
-  const fechas = [...proximosMiercoles(4, -4), ...proximosMiercoles(5)].map(f => nuevaFecha(f));
-  // [correo alumno, nombre, curso, colegio, apoderado, RUT, correo apoderado, celular, ¿firmó?]
-  const gente = [
-    ['tomas.r@verbo.cl','Tomás Riquelme','3° medio','vd','Carolina Muñoz','12.345.678-5','carolina.munoz@gmail.com','+56981234567',1],
-    ['benja.s@verbo.cl','Benjamín Soto','2° medio','vd','Rodrigo Soto','9.876.543-3','rsoto@gmail.com','+56976543210',1],
-    ['agustin.p@verbo.cl','Agustín Pérez','4° medio','vd','Marcela Díaz','15.222.333-0','marcela.diaz@outlook.com','+56999881122',1],
-    ['vicente.a@verbo.cl','Vicente Araya','1° medio','vd','Javier Araya','13.444.555-K','jaraya@gmail.com','+56911223344',0],
-    ['josefa.m@villamaria.cl','Josefa Montes','3° medio','vm','Andrea Ríos','14.555.666-7','andrea.rios@gmail.com','+56966554433',1],
-    ['sofia.v@villamaria.cl','Sofía Valdés','2° medio','vm','Pablo Valdés','11.222.333-9','pvaldes@gmail.com','+56955443322',1],
-    ['ignacia.l@villamaria.cl','Ignacia Lagos','4° medio','vm','Claudia Lagos','16.777.888-1','claudia.lagos@gmail.com','+56944332211',1],
-    ['amparo.c@villamaria.cl','Amparo Cruz','3° medio','vm','Felipe Cruz','17.888.999-2','fcruz@gmail.com','+56933221100',1],
-  ];
-  S.users = {}; S.auth = {}; S.tokens = {};
-  // Registro oficial de apoderados (lo entrega cada colegio). Incluye a Martina para que puedas probar el flujo completo.
-  S.registro = { 'martina.r@villamaria.cl': { nombre:'Paula Rojas', rut:'11.111.111-1', correo:'paula.rojas@gmail.com', cel:'+56912345678' } };
-  gente.forEach(([e,n,c,col,ap,rut,mail,cel,firmo]) => {
-    S.users[e] = { email:e, nombre:n, curso:c, colegio:col, creado:Date.now() - 864e5 * 60 };
-    S.registro[e] = { nombre:ap, rut, correo:mail, cel };
-    if (firmo) S.auth[e] = { estado:'vigente', apoderado:ap, rut, via:mail, fecha:Date.now() - 864e5 * 30, avisar:true, firma:null };
-  });
-  S.fechas = fechas; S.insc = {}; S.avisos = {}; S.feed = [];
-  const id = i => fechas[i].id;
-  const add = (i, e, estado, extra = {}) => { (S.insc[id(i)] = S.insc[id(i)] || []).push(Object.assign({ email:e, estado, ts:Date.now() - 36e5 * (40 - i), qr:rid(12), salida:null, regreso:null, perdonada:false }, extra)); };
-  const fue = (i, e) => { const t = fromIso(fechas[i].fecha).getTime(); add(i, e, 'aceptado', { salida:t + 15.6 * 36e5, regreso:t + 18.5 * 36e5 }); };
-  // historial: Tomás va siempre, Benjamín faltó dos veces sin avisar, Josefa y Sofía van seguido
-  [0,1,2,3].forEach(i => { fue(i,'tomas.r@verbo.cl'); fue(i,'josefa.m@villamaria.cl'); });
-  [1,3].forEach(i => fue(i,'sofia.v@villamaria.cl'));
-  [2,3].forEach(i => add(i,'benja.s@verbo.cl','aceptado'));
-  fue(0,'benja.s@verbo.cl'); fue(2,'amparo.c@villamaria.cl');
-  // próxima fecha: solicitudes por revisar
-  ['tomas.r@verbo.cl','benja.s@verbo.cl','agustin.p@verbo.cl','josefa.m@villamaria.cl','sofia.v@villamaria.cl','ignacia.l@villamaria.cl','amparo.c@villamaria.cl'].forEach((e, k) => add(4, e, 'solicitud', { ts:Date.now() - 36e5 * (10 - k) }));
-  add(5,'agustin.p@verbo.cl','aceptado'); add(5,'ignacia.l@villamaria.cl','aceptado'); add(5,'tomas.r@verbo.cl','solicitud');
-  fechas[7].estado = 'cancelada'; fechas[7].motivo = 'Semana de pruebas globales. Volvemos la semana siguiente.';
-  S.avisos[id(4)] = [{ t:'Nos juntamos en portería a las 15:20. Llevamos termos con café y queque.', de:'Coordinación CAA', ts:Date.now() - 36e5 * 2 }];
-  S.feed = [
-    { t:'Amparo Cruz pidió unirse al ' + dLarga(fechas[4].fecha), ts:Date.now() - 36e5 * 4 },
-    { t:'Benjamín Soto no se presentó el ' + dLarga(fechas[3].fecha), ts:Date.now() - 864e5 * 6 },
-  ];
-  S.codigos = [{ code:'CAFE-VM-2026', colegio:'vm', activo:true, usos:2 }];
-  S.ui = { role:'alumno', tab:'inicio', ctab:'resumen', cfecha:null, dtab:'solicitudes', filtro:'todos', afiltro:'vigentes', q:'', porteria:'salida' };
-  return S;
-}
-let S; try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
-if (!S || !S.registro) seed();
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
-const log = t => { S.feed.unshift({ t, ts:Date.now() }); S.feed = S.feed.slice(0, 50); };
+const ST = { email:null, rol:null, alumno:null, aut:null, fechas:[], cupos:{}, mis:[], avisos:[], ajustes:null, apo:[], c:null, tab:'inicio', ctab:'resumen', cfecha:null, dtab:'solicitudes', porteria:'salida', filtro:'todos', psub:'alumnos', q:'' };
+let L = { modo:sessionStorage.getItem('cs-modo') || 'alumno', paso:'inicio', email:'', inv:'', ocupado:false };
+const setModo = m => { L.modo = m; sessionStorage.setItem('cs-modo', m); };
 
-/* ---------- sesión: dura solo mientras la app esté abierta (máx. 60 min) ---------- */
-let SES = { alumno:null, coord:null, exp:0 };
-try { const x = JSON.parse(sessionStorage.getItem(SKEY)); if (x && x.exp > Date.now()) SES = x; } catch (e) {}
-const saveSes = () => { SES.exp = Date.now() + CONFIG.sesionMin * 6e4; try { sessionStorage.setItem(SKEY, JSON.stringify(SES)); } catch (e) {} };
-function sesionViva(){ if (SES.exp && Date.now() > SES.exp) { SES = { alumno:null, coord:null, exp:0 }; saveSes(); toast('Tu sesión expiró. Entra de nuevo con un código'); return false; } return true; }
-
-/* ---------- reglas ---------- */
-const yo = () => SES.alumno && S.users[SES.alumno];
-const coordYo = () => SES.coord && CONFIG.coordinadores.find(c => c.email === SES.coord);
-const vigente = e => { const a = S.auth[e]; return !!a && a.estado === 'vigente' && Date.now() < CONFIG.vigencia.getTime() + 864e5; };
-const fecha = id => S.fechas.find(f => f.id === id);
-const lista = id => S.insc[id] || [];
-const entrada = (id, e) => lista(id).find(x => x.email === e) || null;
-const conEstado = (id, est, col) => lista(id).filter(x => x.estado === est && (!col || S.users[x.email].colegio === col));
-const aceptados = (id, col) => conEstado(id, 'aceptado', col);
-const solicitudes = (id, col) => conEstado(id, 'solicitud', col);
-const pasada = f => fromIso(f.fecha) < hoy();
-const futuras = () => S.fechas.filter(f => !pasada(f)).sort((a, b) => a.fecha.localeCompare(b.fecha));
-const pasadas = () => S.fechas.filter(pasada).sort((a, b) => b.fecha.localeCompare(a.fecha));
-const colDe = email => { const d = (email.split('@')[1] || '').toLowerCase(); return Object.keys(CONFIG.colegios).find(k => CONFIG.colegios[k].dominio === d) || null; };
-
-/* historial y prioridad justa */
-function historial(e){
-  let veces = 0, faltas = [], ultima = null;
-  pasadas().filter(f => f.estado !== 'cancelada').forEach(f => { const x = entrada(f.id, e); if (!x || x.estado !== 'aceptado') return;
-    if (x.salida) { veces++; ultima = ultima || f.fecha; } else if (!x.perdonada) faltas.push(f); });
-  const limite = Date.now() - 60 * 864e5, recientes = faltas.filter(f => fromIso(f.fecha).getTime() > limite);
-  let baja = null;
-  if (recientes.length >= CONFIG.faltasParaBajar) { const d = fromIso(recientes[0].fecha); d.setDate(d.getDate() + CONFIG.diasPrioridadBaja); if (d > hoy()) baja = d; }
-  return { veces, faltas, recientes, baja, ultima };
+/* ---------- sesión: máximo 60 minutos y se borra al cerrar la app ---------- */
+async function sesionVencida(){
+  const t = +sessionStorage.getItem('cs-login') || 0;
+  if (t && Date.now() - t > CONFIG.sesionMin * 6e4) { await sb.auth.signOut(); sessionStorage.removeItem('cs-login'); toast('Tu sesión expiró. Entra de nuevo con un código'); return true; }
+  return false;
 }
-// menor puntaje = más prioridad: primero quien ha ido menos, luego quien pidió antes; prioridad baja va al final
-function puntaje(id, x){ const h = historial(x.email); return (h.baja ? 1000 : 0) + h.veces * 10 + (x.ts / 1e13); }
-function sugeridos(id){
-  const f = fecha(id), out = new Set();
-  ['vd','vm'].forEach(col => {
-    const libres = f.cupos[col] - aceptados(id, col).length; if (libres <= 0) return;
-    solicitudes(id, col).sort((a, b) => puntaje(id, a) - puntaje(id, b)).slice(0, libres).forEach(x => out.add(x.email));
-  });
-  return out;
+async function salir(){ await sb.auth.signOut(); sessionStorage.removeItem('cs-login'); Object.assign(ST, { email:null, rol:null, alumno:null, aut:null, c:null, apo:[] }); L.paso = 'inicio'; render(); }
+
+/* =========================================================
+   INGRESO (alumno, apoderado o coordinación)
+   ========================================================= */
+function topBar(sub, derecha = ''){
+  return `<header class="top"><div class="mark">${ic('cup')}</div><div class="t"><b>Café Solidario</b>
+    <small>${sub || `<span class="dot" style="background:var(--vd)"></span>${nomCol('vd')}<span class="dot" style="background:var(--vm);margin-left:4px"></span>${nomCol('vm')}`}</small></div>${derecha}</header>`;
+}
+function vIngreso(){
+  const titulos = { alumno:'Entra con tu correo del colegio', apoderado:'Entra con tu correo', coord:'Entrar a coordinación' };
+  const sub = { alumno:'Te mandamos un código a tu correo. No hay contraseñas.', apoderado:'Usa el correo que tienes registrado en el colegio. Ahí te llega el código.', coord:'Solo pueden entrar los correos autorizados por cada colegio.' };
+  let body;
+  if (L.paso === 'inicio') return `<div class="shell view">${topBar()}
+    <div class="auth-hero"><svg class="cup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true">${P.cup}</svg>
+      <h1 style="color:#fff">Café Solidario</h1><p>Cada semana salimos a compartir un café y una conversación.</p></div>
+    <div class="land">
+      <button class="r" data-modo="alumno"><div class="ri cof">${ic('user')}</div><div class="rt"><b>Soy alumno o alumna</b><small>Pide unirte a las salidas y ve tu pase</small></div>${ic('cr','s chev')}</button>
+      <button class="r" data-modo="apoderado"><div class="ri">${ic('pen')}</div><div class="rt"><b>Soy apoderado</b><small>Firma la autorización de tu hijo o hija</small></div>${ic('cr','s chev')}</button>
+    </div>
+    <p class="foot"><button class="lk" data-modo="coord">Entrar a coordinación</button></p></div>`;
+  if (L.paso === 'correo') body = `
+    <label class="field"><span>Correo</span><input id="lmail" type="email" inputmode="email" autocomplete="email" value="${esc(L.email)}" placeholder="${L.modo === 'apoderado' ? 'tu.correo@gmail.com' : 'nombre@colegio.cl'}"></label>
+    ${L.modo === 'alumno' ? `<label class="field" id="invf" ${L.inv ? '' : 'hidden'}><span>Código de invitación</span><input id="linv" autocapitalize="characters" value="${esc(L.inv)}" placeholder="Ej: CAFE-VM-2026"></label>` : ''}
+    <div class="err" id="lerr"></div>
+    <button class="btn pri block" id="lgo" ${L.ocupado ? 'disabled' : ''}>${L.ocupado ? 'Enviando…' : 'Enviar código'}</button>
+    ${L.modo === 'alumno' ? `<p class="hint" style="text-align:center;margin-top:12px">¿No tienes correo del colegio? <button class="lk" id="linvbtn">Tengo un código de invitación</button></p>` : ''}`;
+  else body = `
+    <p class="muted small">Mandamos un código de 6 dígitos a <b style="color:var(--ink)">${esc(L.email)}</b>. Revisa también la carpeta de spam.</p>
+    <input class="otp" id="lotp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="······" aria-label="Código de 6 dígitos" style="margin-top:16px">
+    <div class="err" id="lerr"></div>
+    <button class="btn pri block" id="lok" ${L.ocupado ? 'disabled' : ''}>${L.ocupado ? 'Verificando…' : 'Verificar'}</button>
+    <div class="btns" style="justify-content:space-between;margin-top:12px"><button class="lk small" id="lback">Cambiar correo</button><button class="lk small" id="lre">Reenviar código</button></div>`;
+  return `<div class="shell view">${topBar()}
+    <button class="back" data-act="volverinicio">${ic('back','s')}Volver</button>
+    <div class="card pad20"><h2>${titulos[L.modo]}</h2><p class="muted small" style="margin:6px 0 16px">${sub[L.modo]}</p>${body}
+      <div class="secure">${ic('shield','s')}<span>Cada vez que abres la app te pedimos un código nuevo. Así nadie puede entrar con tu correo.</span></div></div></div>`;
+}
+function bindIngreso(){
+  const err = m => { const e = $('#lerr'); if (e) e.textContent = m || ''; };
+  if ($('#linvbtn')) $('#linvbtn').onclick = () => { $('#invf').hidden = false; $('#linv').focus(); };
+  if ($('#lgo')) {
+    const go = async () => {
+      const e = $('#lmail').value.trim().toLowerCase(); L.email = e; L.inv = $('#linv') ? $('#linv').value.trim().toUpperCase() : '';
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return err('Escribe un correo válido');
+      if (L.modo === 'alumno' && !L.inv) {
+        try { const doms = await q(sb.from('dominios').select('dominio')); if (!doms.some(d => d.dominio === e.split('@')[1])) return err('Usa el correo de tu colegio, o toca "Tengo un código de invitación"'); } catch (x) {}
+      }
+      L.ocupado = true; render();
+      const { error } = await sb.auth.signInWithOtp({ email:e, options:{ shouldCreateUser:true } });
+      L.ocupado = false;
+      if (error) { render(); return err(msgError(error)); }
+      L.paso = 'codigo'; L.reenvio = Date.now() + 60e3; render();
+    };
+    $('#lgo').onclick = go; $('#lmail').onkeydown = ev => { if (ev.key === 'Enter') go(); };
+  }
+  if ($('#lok')) {
+    const ok = async () => {
+      const t = $('#lotp').value.replace(/\D/g, ''); if (t.length !== 6) return err('El código tiene 6 dígitos');
+      L.ocupado = true; $('#lok').disabled = true;
+      const { error } = await sb.auth.verifyOtp({ email:L.email, token:t, type:'email' });
+      L.ocupado = false;
+      if (error) { $('#lok').disabled = false; return err(msgError(error)); }
+      sessionStorage.setItem('cs-login', String(Date.now()));
+      await cargarRol();
+    };
+    $('#lok').onclick = ok; $('#lotp').oninput = ev => { if (ev.target.value.replace(/\D/g,'').length === 6) ok(); }; $('#lotp').focus();
+    $('#lback').onclick = () => { L.paso = 'correo'; render(); };
+    $('#lre').onclick = async () => {
+      if (Date.now() < (L.reenvio || 0)) return err(`Espera ${Math.ceil((L.reenvio - Date.now()) / 1000)} s para pedir otro`);
+      const { error } = await sb.auth.signInWithOtp({ email:L.email, options:{ shouldCreateUser:true } });
+      if (error) return err(msgError(error)); L.reenvio = Date.now() + 60e3; err(''); toast('Te mandamos un código nuevo');
+    };
+  }
 }
 
-/* ---------- códigos de verificación (simulados) ---------- */
-let OTP = null;
-function enviarCodigo(para, tipo){
-  OTP = { para, codigo:code6(), vence:Date.now() + 10 * 6e4, intentos:0, reenvio:Date.now() + 30e3 };
-  const c = OTP.codigo; setTimeout(() => notif(tipo, para, c), 700);
-}
-function revisarCodigo(valor){
-  if (!OTP) return 'Pide un código nuevo';
-  if (Date.now() > OTP.vence) return 'El código venció. Pide uno nuevo';
-  if (OTP.intentos >= 5) return 'Demasiados intentos. Pide un código nuevo';
-  OTP.intentos++;
-  if (valor.replace(/\D/g,'') !== OTP.codigo) return `Código incorrecto. Te quedan ${5 - OTP.intentos} intentos`;
-  OTP = null; return null;
-}
-const tapaMail = m => { const [u, d] = String(m).split('@'); return (u || '').slice(0, 2) + '•••@' + (d || ''); };
-
-/* ---------- notificación simulada con botón ---------- */
-function aviso(kind, titulo, texto, para, boton){
-  const n = $('#notif'), color = kind === 'mail' ? '#1A73E8' : '#34C759';
-  n.innerHTML = `<div class="ni" style="background:${color}">${ic(kind === 'mail' ? 'mail' : 'phone')}</div><div style="min-width:0;flex:1">
-    <small>${kind === 'mail' ? 'Correo' : 'Mensajes'} · ahora · simulado para el prototipo</small><b>${esc(titulo)}</b><p>${texto}</p><small>Para ${esc(para)}</small>
-    ${boton ? `<button class="btn sm yel" style="margin-top:8px" data-act="${boton[0]}">${boton[1]}</button>` : ''}</div>`;
-  n.classList.add('on'); clearTimeout(nt); nt = setTimeout(() => n.classList.remove('on'), boton ? 14000 : 8000);
+/* ---------- después de entrar: ¿qué es esta persona? ---------- */
+async function cargarRol(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) { L.paso = 'inicio'; return render(); }
+  ST.email = session.user.email.toLowerCase();
+  $('#app').innerHTML = `<div class="load"><div><div class="spin"></div>Cargando…</div></div>`;
+  try {
+    if (L.modo === 'coord') {
+      if (!(await rpc('es_coordinador'))) { await sb.auth.signOut(); L.paso = 'correo'; render(); return toast('Este correo no tiene acceso a coordinación'); }
+      ST.rol = 'coord'; await cargarCoord();
+    } else if (L.modo === 'apoderado') {
+      ST.rol = 'apoderado'; ST.apo = await rpc('apoderado_mis_alumnos');
+    } else {
+      const al = await q(sb.from('alumnos').select('*').eq('id', session.user.id).maybeSingle());
+      ST.rol = 'alumno';
+      if (!al) { ST.alumno = null; L.paso = 'perfil'; }
+      else { ST.alumno = al; await cargarAlumno(); }
+    }
+  } catch (e) { toast(msgError(e)); }
+  render();
 }
 
 /* =========================================================
    ALUMNO
    ========================================================= */
-let L = { paso:'correo', email:'', colegio:null, conCodigo:false };
-function topBar(sub){
-  const u = S.ui.role === 'alumno' && yo();
-  return `<header class="top"><div class="mark">${ic('cup')}</div><div class="t"><b>Café Solidario</b>
-    <small>${sub || `<span class="dot" style="background:var(--vd)"></span>${CONFIG.colegios.vd.nombre}<span class="dot" style="background:var(--vm);margin-left:4px"></span>${CONFIG.colegios.vm.nombre}`}</small></div>
-    ${u ? `<button class="avatar av ${u.colegio}" data-tab="perfil" aria-label="Mi perfil">${ini(u.nombre)}</button>` : ''}</header>`;
+async function cargarAlumno(){
+  const uid = ST.alumno.id;
+  const [fechas, mis, aut, cupos, avisos, aj] = await Promise.all([
+    q(sb.from('fechas').select('*').order('dia')),
+    q(sb.from('solicitudes').select('*').eq('alumno_id', uid)),
+    q(sb.from('autorizaciones').select('estado,apoderado_nombre,firmada_en,firmada_por,vence').eq('alumno_id', uid).maybeSingle()),
+    rpc('cupos'),
+    q(sb.from('avisos').select('*').order('creado', { ascending:false })),
+    q(sb.from('ajustes').select('*').eq('id', 1).maybeSingle()),
+  ]);
+  ST.fechas = fechas; ST.mis = mis; ST.aut = aut; ST.avisos = avisos; ST.ajustes = aj || {};
+  ST.cupos = {}; cupos.forEach(c => { (ST.cupos[c.fecha_id] = ST.cupos[c.fecha_id] || {})[c.colegio] = c; });
 }
-function vLogin(){
-  const pasos = ['correo','codigo','perfil'], i = pasos.indexOf(L.paso);
-  let body;
-  if (L.paso === 'correo') body = `
-    <h2>Entra con tu correo</h2><p class="muted small" style="margin-top:6px">Del ${CONFIG.colegios.vd.nombre} (@${CONFIG.colegios.vd.dominio}) o del ${CONFIG.colegios.vm.nombre} (@${CONFIG.colegios.vm.dominio}).</p>
-    <div style="margin-top:16px"><label class="field"><span>Correo</span><input id="lmail" type="email" inputmode="email" autocomplete="email" placeholder="nombre@${CONFIG.colegios.vd.dominio}" value="${esc(L.email)}"></label>
-      ${L.conCodigo ? `<label class="field"><span>Código de invitación</span><input id="linv" autocapitalize="characters" placeholder="Ej: CAFE-VM-2026"></label>` : ''}</div>
-    <p class="hint">Para probar: <button class="lk" data-lfill="martina.r@villamaria.cl">martina.r@villamaria.cl</button> (nueva, con apoderado en el registro) o <button class="lk" data-lfill="tomas.r@verbo.cl">tomas.r@verbo.cl</button> (ya registrado).</p>
-    <div class="err" id="lerr"></div><button class="btn pri block" id="lgo">Enviar código</button>
-    ${L.conCodigo ? '' : `<p class="hint" style="text-align:center;margin-top:14px">¿No tienes correo del colegio? <button class="lk" id="linvbtn">Usar código de invitación</button></p>`}`;
-  else if (L.paso === 'codigo') body = `
-    <h2>Revisa tu correo</h2><p class="muted small" style="margin-top:6px">Mandamos un código de 6 dígitos a <b style="color:var(--ink)">${esc(L.email)}</b>. Solo quien abre ese correo puede entrar.</p>
-    <input class="otp" id="lotp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="······" aria-label="Código de 6 dígitos" style="margin-top:18px">
-    <div class="err" id="lerr"></div><button class="btn pri block" id="lok">Verificar</button>
-    <div class="btns" style="justify-content:space-between;margin-top:12px"><button class="lk small" id="lback">Cambiar correo</button><button class="lk small" id="lre">Reenviar código</button></div>`;
-  else body = `
-    <h2>Cuéntanos quién eres</h2><p class="muted small" style="margin-top:6px">Correo verificado: <b style="color:var(--ink)">${esc(L.email)}</b>, ${CONFIG.colegios[L.colegio].nombre}</p>
-    <div style="margin-top:16px"><label class="field"><span>Nombre y apellido</span><input id="pnom" autocomplete="name" placeholder="Ej: Martina Rojas"></label>
-      <label class="field"><span>Curso</span><select id="pcur">${['','7° básico','8° básico','1° medio','2° medio','3° medio','4° medio'].map(c => `<option value="${c}">${c || 'Elige tu curso'}</option>`).join('')}</select></label></div>
-    <div class="err" id="lerr"></div><button class="btn pri block" id="pok">Entrar</button>`;
-  return `<div class="shell view">${topBar()}
-    <div class="auth-hero"><svg class="cup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true">${P.cup}</svg>
-      <h1 style="color:#fff">Café Solidario</h1><p>Cada semana salimos a compartir un café y una conversación.</p></div>
-    <div class="card pad20"><div class="steps" aria-hidden="true">${pasos.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</div>${body}
-      <div class="secure">${ic('shield','s')}<span>No hay contraseñas: cada vez que abres la app te mandamos un código nuevo a tu correo.</span></div></div></div>`;
+const esPasada = f => fromIso(f.dia) < hoy();
+const futurasA = () => ST.fechas.filter(f => !esPasada(f));
+const miSol = id => ST.mis.find(s => s.fecha_id === id) || null;
+const vigenteA = () => ST.aut && ST.aut.estado === 'vigente' && fromIso(ST.aut.vence) >= hoy();
+function histDe(sols, fechas, aj){
+  const faltasPara = (aj && aj.faltas_para_bajar) || 2, dias = (aj && aj.dias_prioridad_baja) || 30;
+  let veces = 0; const faltas = [];
+  fechas.filter(f => esPasada(f) && f.estado !== 'cancelada').sort((a, b) => b.dia.localeCompare(a.dia)).forEach(f => {
+    const s = sols.find(x => x.fecha_id === f.id); if (!s || s.estado !== 'aceptado') return;
+    if (s.salida) veces++; else if (!s.perdonada) faltas.push(f);
+  });
+  const lim = Date.now() - 60 * 864e5, recientes = faltas.filter(f => fromIso(f.dia).getTime() > lim);
+  let baja = null; if (recientes.length >= faltasPara) { const d = fromIso(recientes[0].dia); d.setDate(d.getDate() + dias); if (d > hoy()) baja = d; }
+  return { veces, faltas, recientes, baja };
 }
-function bindLogin(){
-  const err = m => { const e = $('#lerr'); if (e) e.textContent = m || ''; };
-  $$('[data-lfill]').forEach(b => b.onclick = () => { $('#lmail').value = b.dataset.lfill; });
-  if (L.paso === 'correo') {
-    $('#linvbtn') && ($('#linvbtn').onclick = () => { L.conCodigo = true; L.email = $('#lmail').value; render(); });
-    const go = () => {
-      const e = $('#lmail').value.trim().toLowerCase(); L.email = e;
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return err('Escribe un correo válido');
-      let col = colDe(e);
-      if (L.conCodigo && !col) { const c = S.codigos.find(x => x.code === ($('#linv').value || '').trim().toUpperCase() && x.activo); if (!c) return err('Ese código no es válido o fue desactivado'); col = c.colegio; }
-      if (!col && !S.users[e]) return err(`Usa tu correo @${CONFIG.colegios.vd.dominio} o @${CONFIG.colegios.vm.dominio}, o un código de invitación`);
-      L.colegio = col || S.users[e].colegio; L.paso = 'codigo'; enviarCodigo(e, 'mail'); render();
-    };
-    $('#lgo').onclick = go; $('#lmail').onkeydown = e => { if (e.key === 'Enter') go(); };
-  } else if (L.paso === 'codigo') {
-    const ok = () => {
-      const m = revisarCodigo($('#lotp').value); if (m) return err(m);
-      if (S.users[L.email]) { SES.alumno = L.email; saveSes(); L = { paso:'correo', email:'', colegio:null, conCodigo:false }; render(); toast(`Hola, ${yo().nombre.split(' ')[0]}`); }
-      else { L.paso = 'perfil'; render(); }
-    };
-    $('#lok').onclick = ok; $('#lotp').oninput = e => { if (e.target.value.replace(/\D/g,'').length === 6) ok(); }; $('#lotp').focus();
-    $('#lback').onclick = () => { L.paso = 'correo'; OTP = null; render(); };
-    $('#lre').onclick = () => { if (OTP && Date.now() < OTP.reenvio) return err(`Espera ${Math.ceil((OTP.reenvio - Date.now()) / 1000)} s para pedir otro`); enviarCodigo(L.email, 'mail'); err(''); toast('Te mandamos un código nuevo'); };
-  } else {
-    $('#pok').onclick = () => {
-      const n = $('#pnom').value.trim(), c = $('#pcur').value;
-      if (n.split(/\s+/).length < 2) return err('Escribe tu nombre y apellido');
-      if (!c) return err('Elige tu curso');
-      S.users[L.email] = { email:L.email, nombre:n, curso:c, colegio:L.colegio, creado:Date.now() };
-      if (L.conCodigo) { const cc = S.codigos.find(x => x.colegio === L.colegio && x.activo); if (cc) cc.usos++; }
-      SES.alumno = L.email; saveSes(); S.ui.tab = 'inicio'; L = { paso:'correo', email:'', colegio:null, conCodigo:false }; save(); render();
-      toast(`Listo, ${n.split(' ')[0]}. Ahora pide la autorización`);
-    };
-  }
+function vPerfilNuevo(){
+  return `<div class="shell view">${topBar()}<div class="card pad20"><h2>Cuéntanos quién eres</h2>
+    <p class="muted small" style="margin:6px 0 16px">Correo verificado: <b style="color:var(--ink)">${esc(ST.email)}</b></p>
+    <label class="field"><span>Nombre y apellido</span><input id="pnom" autocomplete="name" placeholder="Ej: Martina Rojas"></label>
+    <label class="field"><span>Curso</span><select id="pcur">${['','7° básico','8° básico','1° medio','2° medio','3° medio','4° medio'].map(c => `<option value="${c}">${c || 'Elige tu curso'}</option>`).join('')}</select></label>
+    <div class="err" id="lerr"></div><button class="btn pri block" id="pok">Entrar</button>
+    <p class="foot"><button class="lk" data-act="salir">No soy yo, salir</button></p></div></div>`;
 }
-
-function bannerAuth(u){
-  if (vigente(u.email)) return '';
-  const a = S.auth[u.email], reg = S.registro[u.email];
-  if (!reg) return `<div class="card banner"><div class="ri red">${ic('users')}</div><div><h3>Tu apoderado no está en el registro</h3><p>Para firmar, el colegio tiene que tener registrado el contacto de tu apoderado. Pídele a la coordinación que lo agregue.</p></div></div>`;
-  if (a && a.estado === 'pendiente') return `<div class="card banner"><div class="ri y">${ic('mail')}</div><div><h3>Esperando a tu apoderado</h3><p>Le mandamos el link para firmar a su correo registrado en el colegio: <b style="color:var(--ink)">${esc(tapaMail(reg.correo))}</b>.</p>
-    <div class="btns"><button class="btn sm soft" data-act="reenviar">${ic('send','s')}Reenviar</button><button class="btn sm line" data-act="asapo">Probar como apoderado</button></div></div></div>`;
+function bindPerfil(){
+  $('#pok').onclick = async () => {
+    const n = $('#pnom').value.trim(), c = $('#pcur').value, err = m => $('#lerr').textContent = m;
+    if (n.split(/\s+/).length < 2) return err('Escribe tu nombre y apellido');
+    if (!c) return err('Elige tu curso');
+    try { ST.alumno = await rpc('registrar_alumno', { p_nombre:n, p_curso:c, p_codigo:L.inv || null }); L.paso = 'inicio'; await cargarAlumno(); render(); toast(`Listo, ${n.split(' ')[0]}. Ahora pide la autorización`); }
+    catch (e) { err(msgError(e)); }
+  };
+}
+function bannerAut(){
+  if (vigenteA()) return '';
+  const a = ST.aut;
+  if (a && a.estado === 'pendiente') return `<div class="card banner"><div class="ri y">${ic('mail')}</div><div><h3>Esperando a tu apoderado</h3><p>Pídele que entre a esta página, toque "Soy apoderado" y firme con el correo que tiene registrado en el colegio.</p>
+    <div class="btns"><button class="btn sm soft" data-act="compartir">${ic('send','s')}Mandarle el link</button></div></div></div>`;
   if (a && a.estado === 'revocada') return `<div class="card banner"><div class="ri red">${ic('ban')}</div><div><h3>Tu apoderado revocó la autorización</h3><p>Necesitas una nueva para pedir unirte a una salida.</p><div class="btns"><button class="btn sm yel" data-act="pedir">Pedir otra</button></div></div></div>`;
-  return `<div class="card banner"><div class="ri y">${ic('pen')}</div><div><h3>Falta la autorización de tu apoderado</h3><p>Se la mandamos al correo que tiene registrado el colegio (${esc(tapaMail(reg.correo))}). Se firma una vez y vale todo el año.</p>
+  return `<div class="card banner"><div class="ri y">${ic('pen')}</div><div><h3>Falta la autorización de tu apoderado</h3><p>La firma tu apoderado con el correo que tiene registrado en el colegio. Vale todo el año.</p>
     <div class="btns"><button class="btn sm yel" data-act="pedir">Pedir autorización</button></div></div></div>`;
 }
-function tagFecha(f, x){
+function tagFecha(f, s){
   if (f.estado === 'cancelada') return `<span class="tag no">No hay café</span>`;
-  if (x && x.estado === 'aceptado') return x.regreso ? `<span class="tag ok">${ic('check','s')}Fuiste</span>` : `<span class="tag ok">${ic('check','s')}Aceptado</span>`;
-  if (x && x.estado === 'solicitud') return `<span class="tag warn">Solicitud enviada</span>`;
-  if (x && x.estado === 'rechazado') return `<span class="tag">No quedaste</span>`;
+  if (s && s.estado === 'aceptado') return s.regreso ? `<span class="tag ok">${ic('check','s')}Fuiste</span>` : `<span class="tag ok">${ic('check','s')}Aceptado</span>`;
+  if (s && s.estado === 'solicitud') return `<span class="tag warn">Solicitud enviada</span>`;
+  if (s && s.estado === 'rechazado') return `<span class="tag">No quedaste</span>`;
   if (f.estado === 'cerrada') return `<span class="tag">Cerrada</span>`;
   return `<span class="tag cof">Pedir unirme</span>`;
 }
-function filaFecha(f, u){
-  const d = fromIso(f.fecha), x = entrada(f.id, u.email), sol = solicitudes(f.id).length, ac = aceptados(f.id).length;
+function filaFechaA(f){
+  const d = fromIso(f.dia), s = miSol(f.id), cu = (ST.cupos[f.id] || {})[ST.alumno.colegio] || { aceptados:0, solicitudes:0 };
   return `<button class="card date ${f.estado === 'cancelada' ? 'off' : ''}" data-fecha="${f.id}">
     <div class="dt"><b>${d.getDate()}</b><small>${MESC[d.getMonth()]}</small></div>
-    <div class="dx"><b>${cap(DIA[d.getDay()])}, ${f.inicio} a ${f.fin}</b>
-      <span class="meta">${f.estado === 'cancelada' ? esc(f.motivo || 'Esta fecha se canceló') : `${f.cupos[u.colegio]} cupos para tu colegio${sol ? `, ${sol + ac} interesados` : ''}`}</span></div>
-    ${tagFecha(f, x)}</button>`;
+    <div class="dx"><b>${cap(DIA[d.getDay()])}, ${t5(f.inicio)} a ${t5(f.fin)}</b>
+      <span class="meta">${f.estado === 'cancelada' ? esc(f.motivo || 'Esta fecha se canceló') : `${f['cupos_' + ST.alumno.colegio]} cupos para tu colegio${cu.solicitudes + cu.aceptados ? `, ${cu.solicitudes + cu.aceptados} interesados` : ''}`}</span></div>
+    ${tagFecha(f, s)}</button>`;
 }
 function qrSVG(texto){
-  try { const q = qrcode(0, 'M'); q.addData(texto); q.make(); return q.createSvgTag({ cellSize:4, margin:0, scalable:true }); }
-  catch (e) { return `<div class="empty small">QR: ${esc(texto)}</div>`; }
+  try { const g = qrcode(0, 'M'); g.addData(texto); g.make(); return g.createSvgTag({ cellSize:4, margin:0, scalable:true }); }
+  catch (e) { return `<div class="small muted" style="word-break:break-all">${esc(texto)}</div>`; }
 }
-function pase(f, x){
-  const d = fromIso(f.fecha);
-  const paso = x.regreso ? 3 : x.salida ? 2 : 1;
-  return `<div class="pass"><div class="pass-top"><div><span class="k">Tu pase</span><h2>${cap(dLarga(f.fecha))}</h2>
-      <div class="m"><span>${ic('clock','s')}${f.inicio} a ${f.fin}</span><span>${ic('map','s')}${esc(f.lugar)}</span></div></div></div>
+function pase(f, s){
+  const paso = s.regreso ? 3 : s.salida ? 2 : 1;
+  return `<div class="pass"><div class="pass-top"><span class="k">Tu pase</span><h2>${cap(dLarga(f.dia))}</h2>
+      <div class="m"><span>${ic('clock','s')}${t5(f.inicio)} a ${t5(f.fin)}</span><span>${ic('map','s')}${esc(f.lugar)}</span></div></div>
     <div class="pass-cut" aria-hidden="true"></div>
-    <div class="pass-bot"><div class="qr" aria-label="Código QR para mostrar en portería">${qrSVG('CS1:' + f.id + ':' + x.qr)}</div>
+    <div class="pass-bot"><div class="qr" aria-label="Código QR para mostrar en portería">${qrSVG('CS1:' + s.qr)}</div>
       <div><p class="small muted">Muéstralo en portería al salir y al volver.</p>
-        <ol class="track">${['Aceptado','Salida','Regreso'].map((t, k) => `<li class="${k < paso ? 'on' : ''}"><i></i>${t}${k === 1 && x.salida ? ` <span class="muted">${hhmm(x.salida)}</span>` : ''}${k === 2 && x.regreso ? ` <span class="muted">${hhmm(x.regreso)}</span>` : ''}</li>`).join('')}</ol></div></div></div>`;
+        <ol class="track">${['Aceptado','Salida','Regreso'].map((t, k) => `<li class="${k < paso ? 'on' : ''}"><i></i>${t}${k === 1 && s.salida ? ` <span class="muted">${hhmm(s.salida)}</span>` : ''}${k === 2 && s.regreso ? ` <span class="muted">${hhmm(s.regreso)}</span>` : ''}</li>`).join('')}</ol></div></div></div>`;
 }
-const hhmm = ts => { const d = new Date(ts); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
-
 function vAlumno(){
-  const u = yo(); if (!u) return vLogin();
-  const tab = S.ui.tab, fut = futuras(), h = historial(u.email);
-  const bajaBanner = h.baja ? `<div class="card banner"><div class="ri red">${ic('clock')}</div><div><h3>Tu prioridad está baja hasta el ${h.baja.getDate()} de ${MES[h.baja.getMonth()]}</h3><p>Faltaste ${h.recientes.length} veces sin avisar. Puedes seguir pidiendo unirte, pero primero se acepta a quienes no han faltado.</p></div></div>` : '';
+  if (!ST.alumno) return vPerfilNuevo();
+  const u = ST.alumno, tab = ST.tab, fut = futurasA(), h = histDe(ST.mis, ST.fechas, ST.ajustes);
+  const baja = h.baja ? `<div class="card banner"><div class="ri red">${ic('clock')}</div><div><h3>Tu prioridad está baja hasta el ${h.baja.getDate()} de ${MES[h.baja.getMonth()]}</h3><p>Faltaste ${h.recientes.length} veces sin avisar. Puedes seguir pidiendo unirte, pero primero se acepta a quienes no han faltado.</p></div></div>` : '';
   let body;
   if (tab === 'inicio') {
-    const mio = fut.map(f => ({ f, x:entrada(f.id, u.email) })).find(o => o.f.estado !== 'cancelada' && o.x && o.x.estado === 'aceptado');
+    const mio = fut.map(f => ({ f, s:miSol(f.id) })).find(o => o.f.estado !== 'cancelada' && o.s && o.s.estado === 'aceptado' && !o.s.regreso);
     const prox = fut.find(f => f.estado !== 'cancelada');
     const hr = new Date().getHours(), saludo = hr < 12 ? 'Buenos días' : hr < 20 ? 'Buenas tardes' : 'Buenas noches';
-    const pend = fut.filter(f => { const x = entrada(f.id, u.email); return x && x.estado === 'solicitud'; });
-    const avisos = fut.filter(f => entrada(f.id, u.email)).flatMap(f => (S.avisos[f.id] || []).map(a => ({ ...a, f }))).sort((a, b) => b.ts - a.ts).slice(0, 2);
+    const pend = fut.filter(f => { const s = miSol(f.id); return s && s.estado === 'solicitud'; });
+    const misIds = new Set(ST.mis.map(s => s.fecha_id)), avisos = ST.avisos.filter(a => misIds.has(a.fecha_id)).slice(0, 3);
     body = `<p class="muted">${saludo},</p><h1 style="margin-top:2px">${esc(u.nombre.split(' ')[0])}</h1>
-      <div class="stack" style="margin-top:18px">${bannerAuth(u)}${bajaBanner}
-      ${mio ? pase(mio.f, mio.x) : prox ? `<div class="card pad20"><span class="muted small">Próxima salida</span><h2 style="margin-top:4px">${cap(dLarga(prox.fecha))}</h2>
-          <p class="meta" style="margin-top:6px">${ic('clock','s')}${prox.inicio} a ${prox.fin}</p>
+      <div class="stack" style="margin-top:18px">${bannerAut()}${baja}
+      ${mio ? pase(mio.f, mio.s) : prox ? `<div class="card pad20"><span class="muted small">Próxima salida</span><h2 style="margin-top:4px">${cap(dLarga(prox.dia))}</h2>
+          <p class="meta" style="margin-top:6px">${ic('clock','s')}${t5(prox.inicio)} a ${t5(prox.fin)}</p>
           <div class="btns" style="margin-top:14px"><button class="btn pri" data-fecha="${prox.id}">${ic('cup','s')}Ver y pedir unirme</button><button class="btn soft" data-tab="fechas">Todas las fechas</button></div></div>`
         : `<div class="card empty">${ic('cal')}La coordinación todavía no publica nuevas fechas.</div>`}
-      ${pend.map(f => `<button class="card banner" data-fecha="${f.id}" style="width:100%;text-align:left"><div class="ri y">${ic('inbox')}</div><div><h3>Solicitud enviada para el ${dLarga(f.fecha)}</h3><p>La coordinación confirma los cupos antes de la salida. Te avisamos apenas responda.</p></div></button>`).join('')}
-      ${fut.filter(f => f.estado === 'cancelada').slice(0, 1).map(f => `<div class="aviso cancel"><b>No hay café el ${dLarga(f.fecha)}</b><p>${esc(f.motivo)}</p></div>`).join('')}
-      ${avisos.map(a => `<div class="aviso"><b>${esc(a.de)} · ${hace(a.ts)}</b><p>${esc(a.t)}</p></div>`).join('')}</div>`;
+      ${pend.map(f => `<button class="card banner" data-fecha="${f.id}" style="width:100%;text-align:left"><div class="ri y">${ic('inbox')}</div><div><h3>Solicitud enviada para el ${dLarga(f.dia)}</h3><p>La coordinación confirma los cupos antes de la salida.</p></div></button>`).join('')}
+      ${fut.filter(f => f.estado === 'cancelada').slice(0, 1).map(f => `<div class="aviso cancel"><b>No hay café el ${dLarga(f.dia)}</b><p>${esc(f.motivo || '')}</p></div>`).join('')}
+      ${avisos.map(a => `<div class="aviso"><b>${esc(a.autor)} · ${hace(new Date(a.creado).getTime())}</b><p>${esc(a.texto)}</p></div>`).join('')}</div>`;
   } else if (tab === 'fechas') {
     let last = '', html = '';
-    fut.forEach(f => { const m = cap(MES[fromIso(f.fecha).getMonth()]); if (m !== last) { html += `<div class="month">${m}</div>`; last = m; } html += filaFecha(f, u); });
+    fut.forEach(f => { const m = cap(MES[fromIso(f.dia).getMonth()]); if (m !== last) { html += `<div class="month">${m}</div>`; last = m; } html += filaFechaA(f); });
     body = `<h1>Fechas</h1><p class="muted" style="margin-top:6px">Pides unirte y la coordinación confirma los cupos. Tienen prioridad quienes han ido menos veces.</p>
       <div class="stack" style="margin-top:16px">${html || `<div class="card empty">${ic('cal')}No hay fechas publicadas todavía.</div>`}</div>`;
   } else {
-    const a = S.auth[u.email], col = CONFIG.colegios[u.colegio];
-    const fueron = pasadas().filter(f => { const x = entrada(f.id, u.email); return x && x.salida; });
+    const a = ST.aut, fueron = ST.fechas.filter(f => esPasada(f) && (miSol(f.id) || {}).salida);
     body = `<div style="display:flex;gap:14px;align-items:center"><div class="avatar av ${u.colegio}" style="width:58px;height:58px;font-size:20px">${ini(u.nombre)}</div>
-        <div><h2>${esc(u.nombre)}</h2><p class="meta">${esc(u.curso)}, ${col.nombre}</p></div></div>
+        <div><h2>${esc(u.nombre)}</h2><p class="meta">${esc(u.curso)}, ${nomCol(u.colegio)}</p></div></div>
       <div class="sec"><h2>Autorización</h2></div>
-      ${vigente(u.email) ? `<div class="card pad16"><span class="stamp">${ic('check','s')}Vigente hasta el 31 de diciembre</span>
-          <p class="meta" style="margin-top:12px">Firmada por ${esc(a.apoderado)} desde ${esc(tapaMail(a.via))}, el ${new Date(a.fecha).getDate()} de ${MES[new Date(a.fecha).getMonth()]}.</p></div>` : bannerAuth(u)}
+      ${vigenteA() ? `<div class="card pad16"><span class="stamp">${ic('check','s')}Vigente hasta el ${fromIso(a.vence).getDate()} de ${MES[fromIso(a.vence).getMonth()]}</span>
+          <p class="meta" style="margin-top:12px">Firmada por ${esc(a.apoderado_nombre || '')}${a.firmada_en ? `, el ${new Date(a.firmada_en).getDate()} de ${MES[new Date(a.firmada_en).getMonth()]}` : ''}.</p></div>` : bannerAut()}
       <div class="sec"><h2>Tu voluntariado</h2></div>
       <div class="statrow"><div class="stat"><span class="big">${h.veces}</span><small>${h.veces === 1 ? 'salida' : 'salidas'}</small></div>
-        <div class="stat"><span class="big">${h.veces * S.ajustes.horas}</span><small>horas</small></div>
+        <div class="stat"><span class="big">${h.veces * 3}</span><small>horas aprox.</small></div>
         <div class="stat" style="${h.recientes.length ? 'background:var(--redsoft)' : ''}"><span class="big">${h.recientes.length}</span><small>faltas sin aviso</small></div></div>
-      ${fueron.length ? `<div class="rows" style="margin-top:12px">${fueron.map(f => { const x = entrada(f.id, u.email); return `<div class="r"><div class="ri cof">${ic('cup','s')}</div><div class="rt"><b>${cap(dLarga(f.fecha))}</b><small>Salida ${hhmm(x.salida)}, regreso ${x.regreso ? hhmm(x.regreso) : 'sin registrar'}</small></div></div>`; }).join('')}</div>` : ''}
+      ${fueron.length ? `<div class="rows" style="margin-top:12px">${fueron.map(f => { const s = miSol(f.id); return `<div class="r"><div class="ri cof">${ic('cup','s')}</div><div class="rt"><b>${cap(dLarga(f.dia))}</b><small>Salida ${hhmm(s.salida)}${s.regreso ? `, regreso ${hhmm(s.regreso)}` : ''}</small></div></div>`; }).join('')}</div>` : ''}
       <details class="card pad16 how" style="margin-top:12px"><summary><b>¿Cómo funciona la prioridad?</b></summary>
-        <p class="muted small">Cuando hay más interesados que cupos, la coordinación acepta primero a quienes han ido menos veces. Si te aceptan y no vas sin avisar, cuenta como falta. Con ${CONFIG.faltasParaBajar} faltas en 60 días, tu prioridad baja por ${CONFIG.diasPrioridadBaja} días. Puedes bajarte sin falta hasta las ${String(CONFIG.bajaSinFalta).padStart(2,'0')}:00 del mismo día.</p></details>
+        <p class="muted small">Cuando hay más interesados que cupos, se acepta primero a quienes han ido menos veces. Si te aceptan y no vas sin avisar, cuenta como falta. Con ${ST.ajustes.faltas_para_bajar || 2} faltas en 60 días, tu prioridad baja por ${ST.ajustes.dias_prioridad_baja || 30} días. Puedes bajarte sin falta hasta las ${t5(ST.ajustes.baja_sin_falta) || '12:00'} del mismo día.</p></details>
       <div class="sec"><h2>Cuenta</h2></div>
-      <div class="rows"><div class="r"><div class="ri">${ic('mail','s')}</div><div class="rt"><b>${esc(u.email)}</b><small>Verificado con código. La sesión se cierra sola al salir de la app.</small></div></div>
-        <button class="r" data-act="logout"><div class="ri red">${ic('out','s')}</div><div class="rt"><b>Cerrar sesión ahora</b><small>Para volver a entrar necesitarás un código</small></div></button></div>`;
+      <div class="rows"><div class="r"><div class="ri">${ic('mail','s')}</div><div class="rt"><b>${esc(u.email)}</b><small>La sesión se cierra sola al salir de la app</small></div></div>
+        <button class="r" data-act="salir"><div class="ri red">${ic('out','s')}</div><div class="rt"><b>Cerrar sesión ahora</b><small>Para volver a entrar necesitarás un código</small></div></button></div>`;
   }
-  return `<div class="shell view">${topBar()}${body}</div>
+  return `<div class="shell view">${topBar('', `<button class="avatar av ${u.colegio}" data-tab="perfil" aria-label="Mi perfil">${ini(u.nombre)}</button>`)}${body}</div>
     <nav class="tabbar" aria-label="Secciones">${[['inicio','home','Inicio'],['fechas','cal','Fechas'],['perfil','user','Perfil']].map(([k,i,l]) => `<button class="${tab === k ? 'on' : ''}" data-tab="${k}" aria-current="${tab === k}">${ic(i)}${l}</button>`).join('')}</nav>`;
 }
-
 function hojaFecha(id){
-  const f = fecha(id), u = yo(); if (!f || !u) return;
-  const x = entrada(id, u.email), ac = aceptados(id, u.colegio).length, sol = solicitudes(id, u.colegio).length;
-  const mismoDia = f.fecha === iso(hoy()) && new Date().getHours() >= CONFIG.bajaSinFalta;
+  const f = ST.fechas.find(x => x.id === id); if (!f) return;
+  const s = miSol(id), col = ST.alumno.colegio, cu = (ST.cupos[id] || {})[col] || { aceptados:0, solicitudes:0 };
+  const lim = t5(ST.ajustes.baja_sin_falta) || '12:00', ahora = new Date(), mismoDia = f.dia === iso(hoy()) && hhmm(ahora) >= lim;
   let acc;
   if (f.estado === 'cancelada') acc = `<div class="aviso cancel"><b>No hay café esta vez</b><p>${esc(f.motivo || 'La coordinación canceló esta fecha.')}</p></div>`;
-  else if (x && x.estado === 'aceptado') acc = (x.salida ? '' : `<button class="btn soft block" data-baja="${id}">Ya no puedo ir</button>`) + `<p class="hint" style="text-align:center">${x.salida ? 'Ya registraste tu salida en portería.' : mismoDia ? 'Ojo: ya pasaron las 12:00, si te bajas ahora cuenta como falta.' : 'Puedes bajarte sin falta hasta las 12:00 del mismo día.'}</p>`;
-  else if (x && x.estado === 'solicitud') acc = `<button class="btn soft block" data-baja="${id}">Retirar mi solicitud</button><p class="hint" style="text-align:center">La coordinación revisa las solicitudes y te avisa si quedas.</p>`;
-  else if (x && x.estado === 'rechazado') acc = `<div class="aviso"><b>Esta vez no quedaste</b><p>Había más interesados que cupos. Tendrás más prioridad en la próxima.</p></div>`;
+  else if (s && s.estado === 'aceptado') acc = (s.salida ? '' : `<button class="btn soft block" data-baja="${id}">Ya no puedo ir</button>`) + `<p class="hint" style="text-align:center">${s.salida ? 'Ya registraste tu salida en portería.' : mismoDia ? `Ojo: ya pasaron las ${lim}, si te bajas ahora cuenta como falta.` : `Puedes bajarte sin falta hasta las ${lim} del mismo día.`}</p>`;
+  else if (s && s.estado === 'solicitud') acc = `<button class="btn soft block" data-baja="${id}">Retirar mi solicitud</button><p class="hint" style="text-align:center">La coordinación revisa las solicitudes y confirma los cupos.</p>`;
+  else if (s && s.estado === 'rechazado') acc = `<div class="aviso"><b>Esta vez no quedaste</b><p>Había más interesados que cupos. Tendrás más prioridad en la próxima.</p></div>`;
   else if (f.estado === 'cerrada') acc = `<button class="btn soft block" disabled>Solicitudes cerradas</button>`;
-  else if (!vigente(u.email)) acc = `<button class="btn soft block" disabled>Necesitas la autorización primero</button>`;
-  else acc = `<button class="btn pri block" data-sol="${id}">${ic('cup','s')}Pedir unirme</button><p class="hint" style="text-align:center">${ac}/${f.cupos[u.colegio]} cupos de tu colegio confirmados, ${sol} ${sol === 1 ? 'solicitud' : 'solicitudes'} en revisión.</p>`;
-  openSheet(cap(dLarga(f.fecha)), `
-    ${(S.avisos[id] || []).slice().reverse().map(a => `<div class="aviso" style="margin-bottom:8px"><b>${esc(a.de)} · ${hace(a.ts)}</b><p>${esc(a.t)}</p></div>`).join('')}
-    ${x && x.estado === 'aceptado' && !pasada(f) ? pase(f, x) + '<div style="height:14px"></div>' : ''}
+  else if (!vigenteA()) acc = `<button class="btn soft block" disabled>Necesitas la autorización primero</button>`;
+  else acc = `<button class="btn pri block" data-sol="${id}">${ic('cup','s')}Pedir unirme</button><p class="hint" style="text-align:center">${cu.aceptados}/${f['cupos_' + col]} cupos de tu colegio confirmados, ${cu.solicitudes} ${cu.solicitudes === 1 ? 'solicitud' : 'solicitudes'} en revisión.</p>`;
+  const av = ST.avisos.filter(a => a.fecha_id === id);
+  openSheet(cap(dLarga(f.dia)), `
+    ${av.map(a => `<div class="aviso" style="margin-bottom:8px"><b>${esc(a.autor)} · ${hace(new Date(a.creado).getTime())}</b><p>${esc(a.texto)}</p></div>`).join('')}
+    ${s && s.estado === 'aceptado' && !esPasada(f) ? pase(f, s) + '<div style="height:14px"></div>' : ''}
     <div class="rows" style="margin:4px 0 16px">
-      <div class="r"><div class="ri cof">${ic('clock','s')}</div><div class="rt"><b>${f.inicio} a ${f.fin}</b><small>Llega 10 minutos antes</small></div></div>
+      <div class="r"><div class="ri cof">${ic('clock','s')}</div><div class="rt"><b>${t5(f.inicio)} a ${t5(f.fin)}</b><small>Llega 10 minutos antes</small></div></div>
       <div class="r"><div class="ri cof">${ic('map','s')}</div><div class="rt"><b>${esc(f.lugar)}</b><small>Punto de encuentro y regreso</small></div></div>
       ${f.nota ? `<div class="r"><div class="ri cof">${ic('bell','s')}</div><div class="rt"><b>Nota de la coordinación</b><small>${esc(f.nota)}</small></div></div>` : ''}
     </div>${acc}`);
-}
-function solicitar(id){
-  const u = yo(), f = fecha(id); if (!vigente(u.email) || f.estado !== 'abierta') return;
-  (S.insc[id] = S.insc[id] || []).push({ email:u.email, estado:'solicitud', ts:Date.now(), qr:rid(12), salida:null, regreso:null, perdonada:false });
-  log(`${u.nombre} pidió unirse al ${dLarga(f.fecha)}`); save(); closeSheet(); render(); taza(f);
-}
-function retirar(id){
-  const u = yo(), f = fecha(id), x = entrada(id, u.email); if (!x) return;
-  const falta = x.estado === 'aceptado' && f.fecha === iso(hoy()) && new Date().getHours() >= CONFIG.bajaSinFalta;
-  if (falta && !confirm('Ya pasaron las 12:00 del día de la salida. Si te bajas ahora, cuenta como falta. ¿Bajarte igual?')) return;
-  if (falta) { x.estado = 'aceptado'; x.bajaTarde = true; } else S.insc[id] = lista(id).filter(y => y !== x);
-  log(`${u.nombre} ${x.estado === 'solicitud' ? 'retiró su solicitud' : 'se bajó'} del ${dLarga(f.fecha)}`);
-  save(); closeSheet(); render(); toast(x.estado === 'solicitud' ? 'Retiraste tu solicitud' : 'Listo, avisamos a la coordinación');
 }
 function taza(f){
   const el = document.createElement('div'); el.className = 'ov';
@@ -738,362 +681,230 @@ function taza(f){
       <g clip-path="url(#clm)"><rect x="20" y="40" width="70" height="60" fill="var(--crema)"/><rect class="liq" x="20" y="44" width="70" height="60" fill="var(--coffee)"/></g>
       <path d="M28 44h52v30a22 22 0 0 1-22 22h-8a22 22 0 0 1-22-22Z" fill="none" stroke="var(--ink)" stroke-width="5" stroke-linejoin="round"/>
       <path d="M80 52h6a10 10 0 0 1 0 20h-6" fill="none" stroke="var(--ink)" stroke-width="5"/></svg>
-    <h2>¡Solicitud enviada!</h2><p>La coordinación confirma los cupos para el ${dLarga(f.fecha)} y te avisamos.</p><button class="btn pri block" style="margin-top:18px" id="tok">Listo</button></div>`;
+    <h2>¡Solicitud enviada!</h2><p>La coordinación confirma los cupos para el ${dLarga(f.dia)}.</p><button class="btn pri block" style="margin-top:18px" id="tok">Listo</button></div>`;
   document.body.appendChild(el);
   const close = () => { el.classList.add('bye'); setTimeout(() => el.remove(), 300); };
   el.onclick = e => { if (e.target === el || e.target.id === 'tok') close(); };
-  setTimeout(() => $('#tok') && $('#tok').focus(), 60);
 }
-function pedir(){
-  const u = yo(), reg = S.registro[u.email]; if (!reg) return toast('Tu apoderado no está en el registro del colegio');
-  const tok = rid(20);
-  Object.keys(S.tokens).forEach(k => { if (S.tokens[k] === u.email) delete S.tokens[k]; });
-  S.tokens[tok] = u.email; S.auth[u.email] = { estado:'pendiente', token:tok, ts:Date.now(), via:reg.correo }; save(); render();
-  toast(`Enviamos el link a ${tapaMail(reg.correo)}`);
-  aviso('mail', 'Café Solidario: autorización para ' + u.nombre.split(' ')[0], `${esc(u.nombre)} pidió participar. Abre el link para revisar y firmar.`, reg.correo, ['asapo','Abrir link (apoderado)']);
+function compartir(enmascarado){
+  const link = location.origin + location.pathname;
+  const msg = `Hola, necesito tu autorización para Café Solidario. Entra aquí, toca "Soy apoderado" y usa el correo que tienes registrado en el colegio: ${link}`;
+  openSheet('Avísale a tu apoderado', `
+    <p class="muted" style="margin-bottom:14px">${enmascarado ? `Tu apoderado debe entrar con el correo registrado en el colegio: <b style="color:var(--ink)">${esc(enmascarado)}</b>. ` : ''}Le llega un código a ese correo, confirma su RUT y firma con el dedo.</p>
+    <a class="btn block" style="background:#25D366;color:#06301E;text-decoration:none" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">${ic('send','s')}Mandar por WhatsApp</a>
+    <button class="btn soft block" style="margin-top:10px" data-copy="${esc(link)}">${ic('copy','s')}Copiar link</button>`);
 }
 
 /* =========================================================
-   APODERADO: link único que llega al correo registrado en el colegio
+   APODERADO
    ========================================================= */
-let A = { paso:'rut' };
 let sig = null;
-function tokenHash(){ return (location.hash.match(/firmar=([a-z0-9]+)/) || [])[1] || ''; }
-function emailDelToken(){ const t = tokenHash(); return t ? S.tokens[t] : (yo() && S.auth[yo().email] && S.auth[yo().email].token && S.tokens[S.auth[yo().email].token]); }
 function vApoderado(){
-  const email = emailDelToken(), u = email && S.users[email], a = u && S.auth[email], reg = u && S.registro[email];
-  const shell = h => `<div class="shell view">${topBar('Autorización de apoderado')}${h}</div>`;
-  if (!u || !reg || !a) return shell(`<div class="card doc"><h2>Este link no es válido</h2><p class="muted" style="margin-top:8px">Puede que el alumno haya pedido uno nuevo o que ya no esté vigente.</p>
-    <p class="hint" style="margin-top:14px">En el prototipo: entra como alumno con martina.r@villamaria.cl, toca "Pedir autorización" y abre el link desde la notificación.</p></div>`);
-  const col = CONFIG.colegios[u.colegio], otro = CONFIG.colegios[u.colegio === 'vd' ? 'vm' : 'vd'];
-  if (a.estado === 'vigente') return shell(`<div class="card doc" style="text-align:center">
-      <span class="stamp" style="font-size:17px">${ic('check','s')}Autorización vigente</span>
-      <h2 style="margin-top:16px">${esc(u.nombre)} puede participar</h2>
-      <p class="muted" style="margin-top:8px">Firmaste el ${new Date(a.fecha).getDate()} de ${MES[new Date(a.fecha).getMonth()]}. Vale hasta el 31 de diciembre de 2026.</p>
-      ${a.firma ? `<img class="sigimg" src="${a.firma}" alt="Tu firma" style="margin:14px auto 0">` : ''}</div>
-    <div class="rows" style="margin-top:12px">
-      <button class="r" data-act="avisar"><div class="ri">${ic('bell','s')}</div><div class="rt"><b>Avisos por SMS</b><small>Cuando la acepten, al salir y al volver al colegio</small></div><span class="toggle ${a.avisar ? 'on' : ''}"></span></button>
-      <button class="r" data-act="revocar"><div class="ri red">${ic('ban','s')}</div><div class="rt"><b style="color:var(--red)">Revocar autorización</b><small>Se cancelan sus solicitudes y salidas futuras</small></div></button></div>`);
-  if (a.estado !== 'pendiente') return shell(`<div class="card doc"><h2>Este link ya no está activo</h2><p class="muted" style="margin-top:8px">La autorización fue revocada. Si quieres volver a autorizar, pídele a ${esc(u.nombre.split(' ')[0])} que solicite una nueva.</p></div>`);
-  const pasos = ['rut','codigo','firma'], i = pasos.indexOf(A.paso);
-  let body;
-  if (A.paso === 'rut') body = `
-    <div class="terms" tabindex="0">${CONFIG.autorizacion[u.colegio].map(p => `<p>${esc(p)}</p>`).join('')}</div>
-    <h3>Confirma que eres el apoderado</h3><p class="muted small" style="margin-top:4px">El colegio tiene registrado a <b style="color:var(--ink)">${esc(reg.nombre)}</b> como apoderado. Escribe tu RUT para continuar.</p>
-    <label class="field" style="margin-top:12px"><span>Tu RUT</span><input id="ar" placeholder="12.345.678-9"></label>
-    <p class="hint">Para el prototipo: 11.111.111-1</p>
-    <div class="err" id="aerr"></div><button class="btn pri block" id="a1">Continuar</button>`;
-  else if (A.paso === 'codigo') body = `
-    <p class="muted">Te mandamos un código al correo registrado en el colegio: <b style="color:var(--ink)">${esc(tapaMail(reg.correo))}</b>. No se puede cambiar desde aquí: si ya no usas ese correo, avísale al colegio.</p>
-    <input class="otp" id="aotp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="······" aria-label="Código de 6 dígitos" style="margin-top:16px">
-    <div class="err" id="aerr"></div><button class="btn pri block" id="a2">Verificar</button>
-    <p style="margin-top:12px;text-align:right"><button class="lk small" id="are">Reenviar código</button></p>`;
-  else body = `
-    <p class="muted">Identidad confirmada ${ic('check','s')}. Solo falta tu firma.</p>
-    <label class="check"><input type="checkbox" id="ac"><span>Leí las condiciones y autorizo a ${esc(u.nombre.split(' ')[0])} a participar en Café Solidario hasta el 31 de diciembre de 2026.</span></label>
-    <div class="sig"><canvas id="cv" aria-label="Recuadro para firmar con el dedo"></canvas><div class="ln"></div><span class="ph">Firma aquí con el dedo</span><button class="clr" id="clr">Borrar</button></div>
-    <label class="check"><input type="checkbox" id="aa" checked><span>Avisarme por SMS cuando la acepten, cuando salga y cuando vuelva al colegio.</span></label>
-    <div class="err" id="aerr"></div><button class="btn pri block" id="a3">${ic('pen','s')}Firmar autorización</button>`;
-  return shell(`<div class="card doc">
-    <div class="steps" aria-hidden="true">${pasos.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</div>
-    <span class="tag ${u.colegio}">${col.nombre} y ${otro.nombre}</span>
-    <h2 style="margin-top:12px;font-size:26px">Autorización para ${esc(u.nombre)}</h2>
-    <p class="muted" style="margin:6px 0 ${A.paso === 'rut' ? 0 : 16}px">${esc(u.curso)}, Colegio ${col.nombre}. Se firma una vez y vale para todas las salidas del año.</p>
-    ${body}</div>`);
+  const L2 = ST.apo || [];
+  const body = !L2.length ? `<div class="card doc"><h2>No encontramos alumnos asociados a este correo</h2>
+      <p class="muted" style="margin-top:8px">Entraste con <b style="color:var(--ink)">${esc(ST.email)}</b>. Tiene que ser el correo que tienes registrado en el colegio. Si cambiaste de correo, avísale a la coordinación.</p></div>`
+    : L2.map(a => `<div class="card pad20" style="margin-bottom:12px">
+      <span class="tag ${a.colegio}">${nomCol(a.colegio)}</span>
+      <h2 style="margin-top:10px">${esc(a.nombre)}</h2><p class="meta">${esc(a.curso)}</p>
+      ${a.estado === 'vigente' ? `<span class="stamp" style="margin-top:12px">${ic('check','s')}Autorización vigente</span>
+        <div class="rows" style="margin-top:14px;box-shadow:none;background:var(--sunk)">
+          <button class="r" data-avisar="${a.alumno_id}" data-v="${a.avisar ? 0 : 1}"><div class="ri">${ic('bell','s')}</div><div class="rt"><b>Recibir avisos</b><small>Cuando haya novedades de sus salidas</small></div><span class="toggle ${a.avisar ? 'on' : ''}"></span></button>
+          <button class="r" data-revocar="${a.alumno_id}"><div class="ri red">${ic('ban','s')}</div><div class="rt"><b style="color:var(--red)">Revocar autorización</b><small>Se cancelan sus solicitudes futuras</small></div></button></div>`
+      : `<p class="muted" style="margin-top:10px">${a.estado === 'pendiente' ? `${esc(a.nombre.split(' ')[0])} pidió tu autorización.` : a.estado === 'revocada' ? 'La autorización está revocada.' : 'Todavía no tiene autorización.'}</p>
+        <button class="btn pri block" style="margin-top:14px" data-firmar="${a.alumno_id}">${ic('pen','s')}Revisar y firmar</button>`}</div>`).join('');
+  return `<div class="shell view">${topBar('Apoderados', `<button class="btn sm line" data-act="salir">${ic('out','s')}Salir</button>`)}
+    <p class="muted">Hola,</p><h1 style="margin:2px 0 18px">${esc((L2[0] && L2[0].apoderado || '').split(' ')[0] || 'apoderado')}</h1>${body}</div>`;
 }
-function bindApoderado(){
-  const email = emailDelToken(); if (!email) return;
-  const reg = S.registro[email], err = m => { const e = $('#aerr'); if (e) e.textContent = m || ''; };
-  if ($('#a1')) {
-    $('#ar').onblur = e => { if (e.target.value) e.target.value = fmtRut(e.target.value); };
-    $('#a1').onclick = () => {
-      const r = $('#ar').value.trim();
-      if (!rutOk(r)) return err('Revisa el RUT: el dígito verificador no coincide');
-      if (fmtRut(r) !== fmtRut(reg.rut)) return err('Este RUT no coincide con el apoderado registrado en el colegio');
-      A.paso = 'codigo'; enviarCodigo(reg.correo, 'mail'); render();
-    };
-  }
-  if ($('#a2')) {
-    const ok = () => { const m = revisarCodigo($('#aotp').value); if (m) return err(m); A.paso = 'firma'; render(); };
-    $('#a2').onclick = ok; $('#aotp').oninput = e => { if (e.target.value.replace(/\D/g,'').length === 6) ok(); }; $('#aotp').focus();
-    $('#are').onclick = () => { if (OTP && Date.now() < OTP.reenvio) return err(`Espera ${Math.ceil((OTP.reenvio - Date.now()) / 1000)} s para pedir otro`); enviarCodigo(reg.correo, 'mail'); toast('Código reenviado'); };
-  }
-  if ($('#cv')) {
+function hojaFirma(id){
+  const a = ST.apo.find(x => x.alumno_id === id); if (!a) return;
+  openSheet('Autorización para ' + a.nombre.split(' ')[0], `
+    <div class="terms" tabindex="0" style="margin-top:0">${(CONFIG.autorizacion[a.colegio] || []).map(p => `<p>${esc(p)}</p>`).join('')}</div>
+    <label class="field"><span>Tu RUT (se compara con el registro del colegio)</span><input id="ar" placeholder="12.345.678-9"></label>
+    <label class="check"><input type="checkbox" id="ac"><span>Leí las condiciones y autorizo a ${esc(a.nombre)} a participar en Café Solidario.</span></label>
+    <div class="sig"><canvas id="cv" aria-label="Recuadro para firmar con el dedo"></canvas><div class="ln"></div><span class="ph">Firma aquí con el dedo</span><button class="clr" id="clr">Borrar</button></div>
+    <label class="check"><input type="checkbox" id="aa" checked><span>Quiero recibir avisos de sus salidas.</span></label>
+    <div class="err" id="aerr"></div><button class="btn pri block" id="a3">${ic('pen','s')}Firmar autorización</button>`);
+  setTimeout(() => {
     const cv = $('#cv'), r = cv.getBoundingClientRect(), dpr = Math.min(3, devicePixelRatio || 1);
     cv.width = r.width * dpr; cv.height = r.height * dpr;
-    const g = cv.getContext('2d'); g.scale(dpr, dpr); g.lineWidth = 2.6; g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = '#10201A';
+    const g = cv.getContext('2d'); g.scale(dpr, dpr); g.lineWidth = 2.6; g.lineCap = 'round'; g.strokeStyle = '#10201A';
     let on = false, last = null; sig = { cv, ink:0 };
     const pt = e => { const b = cv.getBoundingClientRect(); return { x:e.clientX - b.left, y:e.clientY - b.top }; };
     cv.onpointerdown = e => { on = true; last = pt(e); cv.setPointerCapture(e.pointerId); $('.sig .ph').style.opacity = 0; };
     cv.onpointermove = e => { if (!on) return; const p = pt(e); g.beginPath(); g.moveTo(last.x, last.y); g.lineTo(p.x, p.y); g.stroke(); sig.ink += Math.hypot(p.x - last.x, p.y - last.y); last = p; };
     cv.onpointerup = cv.onpointercancel = () => on = false;
     $('#clr').onclick = () => { g.clearRect(0, 0, cv.width, cv.height); sig.ink = 0; $('.sig .ph').style.opacity = 1; };
-    $('#a3').onclick = () => {
+    $('#ar').onblur = e => { if (e.target.value) e.target.value = fmtRut(e.target.value); };
+    $('#a3').onclick = async () => {
+      const err = m => $('#aerr').textContent = m, rut = $('#ar').value;
+      if (!rutOk(rut)) return err('Revisa el RUT: el dígito verificador no coincide');
       if (!$('#ac').checked) return err('Marca que leíste y autorizas');
-      if (!sig || sig.ink < 40) return err('Falta tu firma en el recuadro');
-      Object.assign(S.auth[email], { estado:'vigente', apoderado:reg.nombre, rut:reg.rut, via:reg.correo, fecha:Date.now(), avisar:$('#aa').checked, firma:cv.toDataURL('image/png') });
-      log(`${reg.nombre} firmó la autorización de ${S.users[email].nombre}`);
-      A = { paso:'rut' }; save(); render(); window.scrollTo({ top:0, behavior:'smooth' }); toast('Autorización firmada. ¡Gracias!');
+      if (sig.ink < 40) return err('Falta tu firma en el recuadro');
+      $('#a3').disabled = true;
+      try { await rpc('apoderado_firmar', { p_alumno:id, p_rut:fmtRut(rut), p_firma:cv.toDataURL('image/png'), p_avisar:$('#aa').checked });
+        ST.apo = await rpc('apoderado_mis_alumnos'); closeSheet(); render(); toast('Autorización firmada. ¡Gracias!'); }
+      catch (e) { $('#a3').disabled = false; err(msgError(e)); }
     };
-  }
+  }, 450);
 }
 
 /* =========================================================
    COORDINACIÓN
    ========================================================= */
-let C = { paso:'correo', email:'' };
-function vCoordLogin(){
-  return `<div class="shell view">${topBar('Panel de coordinación')}
-    <div class="card pad20" style="max-width:460px">
-      <div class="ri" style="width:46px;height:46px;border-radius:14px;background:var(--green);color:#fff">${ic('lock')}</div>
-      <h2 style="margin-top:14px">Entrar a coordinación</h2>
-      ${C.paso === 'correo' ? `<p class="muted small" style="margin-top:6px">Solo pueden entrar los correos autorizados por cada colegio.</p>
-        <label class="field" style="margin-top:16px"><span>Correo</span><input id="cmail" type="email" placeholder="coordinacion@${CONFIG.colegios.vd.dominio}" value="${esc(C.email)}"></label>
-        <p class="hint">Para el prototipo: ${CONFIG.coordinadores.map(c => `<button class="lk" data-cfill="${c.email}">${c.email}</button>`).join(' o ')}</p>
-        <div class="err" id="cerr"></div><button class="btn pri block" id="cgo">Enviar código</button>`
-      : `<p class="muted small" style="margin-top:6px">Código enviado a <b style="color:var(--ink)">${esc(C.email)}</b>.</p>
-        <input class="otp" id="cotp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="······" aria-label="Código" style="margin-top:16px">
-        <div class="err" id="cerr"></div><button class="btn pri block" id="cok">Verificar</button>
-        <p style="margin-top:12px"><button class="lk small" id="cback">Cambiar correo</button></p>`}
-    </div></div>`;
+async function cargarCoord(){
+  const [fechas, sols, alumnos, auts, registro, codigos, actividad, avisos, aj, coords] = await Promise.all([
+    q(sb.from('fechas').select('*').order('dia')),
+    q(sb.from('solicitudes').select('*')),
+    q(sb.from('alumnos').select('*').order('nombre')),
+    q(sb.from('autorizaciones').select('alumno_id,estado,apoderado_nombre,firmada_en,vence,firma')),
+    q(sb.from('registro_apoderados').select('*').order('alumno_email')),
+    q(sb.from('codigos_invitacion').select('*')),
+    q(sb.from('actividad').select('*').order('id', { ascending:false }).limit(30)),
+    q(sb.from('avisos').select('*').order('creado')),
+    q(sb.from('ajustes').select('*').eq('id', 1).maybeSingle()),
+    q(sb.from('coordinadores').select('*')),
+  ]);
+  ST.c = { fechas, sols, alumnos, auts, registro, codigos, actividad, avisos, aj:aj || {}, coords };
+  ST.c.al = Object.fromEntries(alumnos.map(a => [a.id, a]));
+  ST.c.reg = Object.fromEntries(registro.map(r => [r.alumno_email.toLowerCase(), r]));
 }
-function bindCoordLogin(){
-  const err = m => $('#cerr') && ($('#cerr').textContent = m || '');
-  $$('[data-cfill]').forEach(b => b.onclick = () => { $('#cmail').value = b.dataset.cfill; });
-  if ($('#cgo')) $('#cgo').onclick = () => {
-    const e = $('#cmail').value.trim().toLowerCase(); C.email = e;
-    if (!CONFIG.coordinadores.some(c => c.email === e)) return err('Este correo no tiene acceso al panel');
-    C.paso = 'codigo'; enviarCodigo(e, 'mail'); render();
-  };
-  if ($('#cok')) {
-    const ok = () => { const m = revisarCodigo($('#cotp').value); if (m) return err(m); SES.coord = C.email; saveSes(); C = { paso:'correo', email:'' }; render(); };
-    $('#cok').onclick = ok; $('#cotp').oninput = e => { if (e.target.value.replace(/\D/g,'').length === 6) ok(); }; $('#cotp').focus();
-    $('#cback').onclick = () => { C.paso = 'correo'; OTP = null; render(); };
-  }
+const C_ = () => ST.c;
+const fechaC = id => C_().fechas.find(f => f.id === id);
+const solsDe = (id, est, col) => C_().sols.filter(s => s.fecha_id === id && (!est || s.estado === est) && (!col || (C_().al[s.alumno_id] || {}).colegio === col));
+const vigC = id => { const a = C_().auts.find(x => x.alumno_id === id); return a && a.estado === 'vigente' && fromIso(a.vence) >= hoy(); };
+const histC = id => histDe(C_().sols.filter(s => s.alumno_id === id), C_().fechas, C_().aj);
+const puntaje = s => { const h = histC(s.alumno_id); return (h.baja ? 1000 : 0) + h.veces * 10 + new Date(s.creada).getTime() / 1e13; };
+function sugeridos(f){
+  const out = new Set();
+  ['vd','vm'].forEach(col => { const lib = f['cupos_' + col] - solsDe(f.id, 'aceptado', col).length; if (lib <= 0) return;
+    solsDe(f.id, 'solicitud', col).sort((a, b) => puntaje(a) - puntaje(b)).slice(0, lib).forEach(s => out.add(s.id)); });
+  return out;
 }
-function badgesPersona(e){
-  const h = historial(e), b = [];
-  if (h.baja) b.push(`<span class="tag no">Prioridad baja: ${h.recientes.length} faltas</span>`);
-  else if (h.recientes.length) b.push(`<span class="tag warn">${h.recientes.length} falta sin aviso</span>`);
-  b.push(h.veces ? `<span class="tag">Ha ido ${h.veces} ${h.veces === 1 ? 'vez' : 'veces'}</span>` : `<span class="tag ok">${ic('star','s')}Primera vez</span>`);
-  if (!vigente(e)) b.push(`<span class="tag no">Sin autorización</span>`);
-  return b.join('');
-}
-function filaPersona(f, x, modo, sug){
-  const u = S.users[x.email], a = S.auth[x.email] || {}, reg = S.registro[x.email] || {};
-  let der = '';
-  if (modo === 'sol') der = `<div class="btns" style="flex-direction:column;gap:6px"><button class="btn sm pri" data-acept="${esc(x.email)}">Aceptar</button><button class="btn sm soft" data-rech="${esc(x.email)}">No esta vez</button></div>`;
-  else if (modo === 'acep') {
-    if (pasada(f)) der = x.salida ? `<span class="tag ok">${ic('check','s')}Fue</span>` : x.perdonada ? `<button class="btn sm soft" data-perd="${esc(x.email)}">Quitar perdón</button>` : `<div style="text-align:right"><span class="tag no">Falta</span><br><button class="lk small" data-perd="${esc(x.email)}">Perdonar</button></div>`;
-    else der = x.regreso ? `<span class="tag ok">Volvió ${hhmm(x.regreso)}</span>` : x.salida ? `<span class="tag warn">Salió ${hhmm(x.salida)}</span>` : `<button class="btn sm soft" data-quitar="${esc(x.email)}" aria-label="Quitar de aceptados">Quitar</button>`;
-  } else {
-    const k = S.ui.porteria === 'salida' ? 'salida' : 'regreso', hecho = x[k];
-    der = `<button class="att ${hecho ? 'on' : ''}" data-marca="${esc(x.email)}" aria-pressed="${!!hecho}" aria-label="Marcar ${k} de ${esc(u.nombre)}">${hecho ? `<small style="font-size:11px;font-weight:700">${hhmm(hecho)}</small>` : ic('check')}</button>`;
-  }
-  return `<div class="person ${sug ? 'sug' : ''}"><div class="avatar av ${u.colegio}">${ini(u.nombre)}</div><div class="pt"><b>${esc(u.nombre)}${sug ? ` <span class="tag cof">${ic('star','s')}Sugerido</span>` : ''}</b>
-    <small><span class="tag ${u.colegio}">${CONFIG.colegios[u.colegio].nombre}</span>${esc(u.curso)}${x.bajaTarde ? ' <span class="tag no">Se bajó tarde</span>' : ''}</small>
-    ${modo === 'sol' ? `<small>${badgesPersona(x.email)}</small>` : ''}
-    ${modo !== 'sol' && reg.cel ? `<small>${ic('phone','s')}<a href="tel:${esc(reg.cel)}">${esc(reg.nombre)}, ${esc(reg.cel)}</a></small>` : ''}</div>${der}</div>`;
-}
+async function logC(t){ try { await sb.from('actividad').insert({ texto:t }); } catch (e) {} }
+async function recargar(msg){ try { await cargarCoord(); } catch (e) { toast(msgError(e)); } render(); if (msg) toast(msg); }
+
 function estadoTag(f){
   if (f.estado === 'cancelada') return `<span class="tag no">No hay café</span>`;
-  if (pasada(f)) return `<span class="tag">Realizada</span>`;
-  const s = solicitudes(f.id).length;
-  if (s) return `<span class="tag warn">${s} por revisar</span>`;
-  if (f.estado === 'cerrada') return `<span class="tag">Cerrada</span>`;
-  return `<span class="tag ok">Abierta</span>`;
+  if (esPasada(f)) return `<span class="tag">Realizada</span>`;
+  const n = solsDe(f.id, 'solicitud').length; if (n) return `<span class="tag warn">${n} por revisar</span>`;
+  return f.estado === 'cerrada' ? `<span class="tag">Cerrada</span>` : `<span class="tag ok">Abierta</span>`;
+}
+function persona(f, s, modo, sug){
+  const u = C_().al[s.alumno_id] || { nombre:'?', curso:'', colegio:'vd', email:'' }, r = C_().reg[(u.email || '').toLowerCase()] || {}, h = histC(s.alumno_id);
+  let der = '';
+  if (modo === 'sol') der = `<div class="btns" style="flex-direction:column;gap:6px"><button class="btn sm pri" data-acept="${s.id}">Aceptar</button><button class="btn sm soft" data-rech="${s.id}">No esta vez</button></div>`;
+  else if (modo === 'acep') der = esPasada(f) ? (s.salida ? `<span class="tag ok">Fue</span>` : `<button class="btn sm ${s.perdonada ? 'soft' : 'danger'}" data-perd="${s.id}" data-v="${s.perdonada ? 0 : 1}">${s.perdonada ? 'Perdonada' : 'Falta · perdonar'}</button>`)
+    : s.regreso ? `<span class="tag ok">Volvió ${hhmm(s.regreso)}</span>` : s.salida ? `<span class="tag warn">Salió ${hhmm(s.salida)}</span>` : `<button class="btn sm soft" data-quitar="${s.id}">Quitar</button>`;
+  else { const k = ST.porteria, v = s[k]; der = `<button class="att ${v ? 'on' : ''}" data-marca="${s.qr}" aria-label="Marcar ${k}">${v ? `<small style="font-size:11px;font-weight:700">${hhmm(v)}</small>` : ic('check')}</button>`; }
+  const tags = modo === 'sol' ? `${h.baja ? `<span class="tag no">Prioridad baja</span>` : h.recientes.length ? `<span class="tag warn">${h.recientes.length} falta</span>` : ''}${h.veces ? `<span class="tag">Ha ido ${h.veces}</span>` : `<span class="tag ok">Primera vez</span>`}${vigC(s.alumno_id) ? '' : '<span class="tag no">Sin autorización</span>'}` : '';
+  return `<div class="person ${sug ? 'sug' : ''}"><div class="avatar av ${u.colegio}">${ini(u.nombre)}</div><div class="pt"><b>${esc(u.nombre)}${sug ? ` <span class="tag cof">${ic('star','s')}Sugerido</span>` : ''}</b>
+    <small><span class="tag ${u.colegio}">${nomCol(u.colegio)}</span>${esc(u.curso)}${s.baja_tarde ? ' <span class="tag no">Se bajó tarde</span>' : ''}</small>${tags ? `<small>${tags}</small>` : ''}
+    ${modo !== 'sol' && r.celular ? `<small>${ic('phone','s')}<a href="tel:${esc(r.celular)}">${esc(r.nombre)}, ${esc(r.celular)}</a></small>` : ''}</div>${der}</div>`;
 }
 function vCoord(){
-  const c = coordYo(); if (!c) return vCoordLogin();
-  const t = S.ui.ctab, porRevisar = futuras().reduce((n, f) => n + solicitudes(f.id).length, 0);
-  const tabs = `<nav class="ctabs" aria-label="Secciones del panel">${[['resumen','chart','Resumen'],['fechas','cal','Fechas'],['personas','users','Alumnos y apoderados'],['ajustes','gear','Ajustes']].map(([k,i,l]) =>
-    `<button class="${t === k && !S.ui.cfecha ? 'on' : ''}" data-ctab="${k}">${ic(i,'s')}${l}${k === 'fechas' && porRevisar ? `<span class="n">${porRevisar}</span>` : ''}</button>`).join('')}</nav>`;
+  const c = C_(); if (!c) return `<div class="load">Cargando…</div>`;
+  const t = ST.ctab, nRev = c.fechas.filter(f => !esPasada(f)).reduce((n, f) => n + solsDe(f.id, 'solicitud').length, 0);
+  const tabs = `<nav class="ctabs">${[['resumen','chart','Resumen'],['fechas','cal','Fechas'],['personas','users','Alumnos y apoderados'],['ajustes','gear','Ajustes']].map(([k,i,l]) => `<button class="${t === k && !ST.cfecha ? 'on' : ''}" data-ctab="${k}">${ic(i,'s')}${l}${k === 'fechas' && nRev ? `<span class="n">${nRev}</span>` : ''}</button>`).join('')}</nav>`;
   let body;
-  if (S.ui.cfecha && fecha(S.ui.cfecha)) body = vFechaDetalle(fecha(S.ui.cfecha));
+  const fut = c.fechas.filter(f => !esPasada(f)), pas = c.fechas.filter(esPasada).reverse();
+  const fila = f => { const d = fromIso(f.dia); return `<button class="card date ${f.estado === 'cancelada' ? 'off' : ''}" data-open="${f.id}"><div class="dt"><b>${d.getDate()}</b><small>${MESC[d.getMonth()]}</small></div>
+    <div class="dx"><b>${cap(DIA[d.getDay()])}, ${t5(f.inicio)} a ${t5(f.fin)}</b><span class="meta">${f.estado === 'cancelada' ? esc(f.motivo || '') : `${solsDe(f.id, 'aceptado').length} de ${f.cupos_vd + f.cupos_vm} aceptados`}</span></div>${estadoTag(f)}</button>`; };
+  if (ST.cfecha && fechaC(ST.cfecha)) body = vFechaC(fechaC(ST.cfecha));
   else if (t === 'resumen') {
-    const f = futuras().find(x => x.estado !== 'cancelada'), conBaja = Object.keys(S.users).filter(e => historial(e).baja).length;
-    const ult = pasadas().find(x => x.estado !== 'cancelada'), falt = ult ? aceptados(ult.id).filter(x => !x.salida && !x.perdonada).length : 0;
-    body = `<div class="cgrid two"><div>
-      ${f ? `<div class="next"><svg class="cup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true">${P.cup}</svg>
-          <span class="k">Próxima salida</span><h2>${cap(dLarga(f.fecha))}</h2>
-          <div class="m"><span>${ic('check','s')}${aceptados(f.id).length} de ${f.cupos.vd + f.cupos.vm} aceptados</span><span>${ic('inbox','s')}${solicitudes(f.id).length} solicitudes</span></div>
-          <div class="acts"><button class="btn sm yel" data-open="${f.id}" data-dt="solicitudes">Revisar solicitudes</button><button class="btn sm soft" data-open="${f.id}" data-dt="porteria">${ic('scan','s')}Portería</button></div></div>`
-        : `<div class="card empty">${ic('cal')}No hay salidas próximas. Crea una en Fechas.</div>`}
-      <div class="statrow" style="margin-top:12px">
-        <div class="stat"><span class="big">${Object.keys(S.users).length}</span><small>alumnos registrados</small></div>
-        <div class="stat"><span class="big">${Object.keys(S.auth).filter(vigente).length}</span><small>autorizaciones vigentes</small></div>
-        <div class="stat" style="${conBaja ? 'background:var(--redsoft)' : ''}"><span class="big">${conBaja}</span><small>con prioridad baja</small></div></div>
-      ${ult && falt ? `<div class="aviso cancel" style="margin-top:12px"><b>Última salida (${dLarga(ult.fecha)})</b><p>${falt} ${falt === 1 ? 'aceptado no se presentó' : 'aceptados no se presentaron'} sin avisar. <button class="lk" data-open="${ult.id}" data-dt="aceptados">Revisar</button></p></div>` : ''}
-      </div><div><div class="sec" style="margin-top:0"><h2>Actividad</h2></div>
-      <div class="rows feed">${S.feed.slice(0, 8).map(e => `<div class="r"><div class="rt"><b style="font-weight:500;font-size:14.5px">${esc(e.t)}</b><small>${hace(e.ts)}</small></div></div>`).join('') || '<div class="empty">Sin actividad todavía.</div>'}</div></div></div>`;
+    const f = fut.find(x => x.estado !== 'cancelada');
+    body = `<div class="cgrid two"><div>${f ? `<div class="next"><span class="k">Próxima salida</span><h2>${cap(dLarga(f.dia))}</h2>
+        <div class="m"><span>${solsDe(f.id, 'aceptado').length} de ${f.cupos_vd + f.cupos_vm} aceptados</span><span>${solsDe(f.id, 'solicitud').length} solicitudes</span></div>
+        <div class="acts"><button class="btn sm yel" data-open="${f.id}" data-dt="solicitudes">Revisar solicitudes</button><button class="btn sm soft" data-open="${f.id}" data-dt="porteria">${ic('scan','s')}Portería</button></div></div>`
+      : `<div class="card empty">${ic('cal')}No hay salidas próximas. Crea una en Fechas.</div>`}
+      <div class="statrow" style="margin-top:12px"><div class="stat"><span class="big">${c.alumnos.length}</span><small>alumnos</small></div><div class="stat"><span class="big">${c.auts.filter(a => vigC(a.alumno_id)).length}</span><small>autorizados</small></div><div class="stat"><span class="big">${c.registro.length}</span><small>en el registro</small></div></div></div>
+      <div><div class="sec" style="margin-top:0"><h2>Actividad</h2><button class="lk" data-act="recargar">Actualizar</button></div><div class="rows feed">${c.actividad.map(a => `<div class="r"><div class="rt"><b style="font-weight:500;font-size:14.5px">${esc(a.texto)}</b><small>${hace(new Date(a.creado).getTime())}</small></div></div>`).join('') || '<div class="empty">Sin actividad todavía.</div>'}</div></div></div>`;
   } else if (t === 'fechas') {
-    const fila = f => { const d = fromIso(f.fecha);
-      return `<button class="card date ${f.estado === 'cancelada' ? 'off' : ''}" data-open="${f.id}"><div class="dt"><b>${d.getDate()}</b><small>${MESC[d.getMonth()]}</small></div>
-        <div class="dx"><b>${cap(DIA[d.getDay()])}, ${f.inicio} a ${f.fin}</b><span class="meta">${f.estado === 'cancelada' ? esc(f.motivo) : pasada(f) ? `${aceptados(f.id).filter(x => x.salida).length} fueron, ${aceptados(f.id).filter(x => !x.salida && !x.perdonada).length} faltas` : `${aceptados(f.id).length} de ${f.cupos.vd + f.cupos.vm} aceptados`}</span></div>${estadoTag(f)}</button>`; };
     body = `<div class="btns" style="margin-bottom:16px"><button class="btn pri" data-act="nueva">${ic('plus','s')}Nueva fecha</button><button class="btn soft" data-act="mes">${ic('cal','s')}Agregar miércoles del próximo mes</button></div>
-      <div class="month">Próximas</div><div class="stack">${futuras().map(fila).join('') || `<div class="card empty">No hay fechas próximas.</div>`}</div>
-      <div class="month" style="margin-top:24px">Realizadas</div><div class="stack">${pasadas().map(fila).join('') || `<div class="card empty">Todavía no hay salidas realizadas.</div>`}</div>`;
+      <div class="month">Próximas</div><div class="stack">${fut.map(fila).join('') || '<div class="card empty">No hay fechas próximas.</div>'}</div>
+      <div class="month" style="margin-top:24px">Realizadas</div><div class="stack">${pas.map(fila).join('') || '<div class="card empty">Todavía no hay salidas realizadas.</div>'}</div>`;
   } else if (t === 'personas') {
-    const sub = S.ui.afiltro === 'registro' ? 'registro' : 'alumnos', q = S.ui.q.trim().toLowerCase();
-    const segP = `<div class="seg" data-seg style="max-width:420px"><button class="${sub === 'alumnos' ? 'on' : ''}" data-af="alumnos">Alumnos</button><button class="${sub === 'registro' ? 'on' : ''}" data-af="registro">Registro de apoderados</button><i></i></div>`;
-    if (sub === 'alumnos') {
-      const us = Object.values(S.users).filter(u => !q || (u.nombre + u.email).toLowerCase().includes(q)).sort((a, b) => a.nombre.localeCompare(b.nombre));
-      body = segP + `<label class="search">${ic('users','s')}<input id="aq" placeholder="Buscar alumno" value="${esc(S.ui.q)}"></label>
-        <div class="rows">${us.map(u => { const a = S.auth[u.email], h = historial(u.email);
-          return `<div class="person" style="align-items:flex-start"><div class="avatar av ${u.colegio}">${ini(u.nombre)}</div><div class="pt"><b>${esc(u.nombre)}</b>
-            <small><span class="tag ${u.colegio}">${CONFIG.colegios[u.colegio].nombre}</span>${esc(u.curso)}</small>
-            <small>${vigente(u.email) ? `<span class="tag ok">${ic('check','s')}Autorizado por ${esc(a.apoderado)}</span>` : a && a.estado === 'pendiente' ? `<span class="tag warn">Esperando firma</span>` : `<span class="tag no">Sin autorización</span>`}
-              <span class="tag">Fue ${h.veces} ${h.veces === 1 ? 'vez' : 'veces'}</span>${h.recientes.length ? `<span class="tag ${h.baja ? 'no' : 'warn'}">${h.recientes.length} ${h.recientes.length === 1 ? 'falta' : 'faltas'}${h.baja ? ', prioridad baja' : ''}</span>` : ''}</small>
-            ${a && a.firma ? `<img class="sigimg" src="${a.firma}" alt="Firma">` : ''}
-            ${h.recientes.length ? `<div class="btns" style="margin-top:8px"><button class="btn sm soft" data-perdtodo="${esc(u.email)}">Perdonar faltas</button></div>` : ''}</div></div>`; }).join('') || '<div class="empty">Sin resultados.</div>'}</div>`;
-    } else {
-      const regs = Object.entries(S.registro).filter(([e, r]) => !q || (e + r.nombre).toLowerCase().includes(q));
-      body = segP + `<div class="aviso" style="margin-bottom:12px"><b>Por qué existe este registro</b><p>El link de autorización solo se manda al correo que el colegio tiene registrado para cada apoderado. Así un alumno no puede firmar por su cuenta.</p></div>
-        <div class="btns" style="margin-bottom:12px"><button class="btn pri" data-act="addreg">${ic('plus','s')}Agregar apoderado</button><button class="btn soft" data-act="importar">${ic('copy','s')}Pegar desde Excel</button></div>
-        <label class="search">${ic('users','s')}<input id="aq" placeholder="Buscar en el registro" value="${esc(S.ui.q)}"></label>
-        <div class="rows">${regs.map(([e, r]) => `<div class="r"><div class="ri">${ic('user','s')}</div><div class="rt"><b>${esc(r.nombre)}</b><small>Apoderado de ${esc(e)}</small><small>RUT ${esc(r.rut)}, ${esc(tapaMail(r.correo))}, ${esc(tapaTel(r.cel))}</small></div>
-          <button class="btn sm soft" data-delreg="${esc(e)}" aria-label="Quitar del registro">${ic('trash','s')}</button></div>`).join('') || '<div class="empty">Sin resultados.</div>'}</div>`;
-    }
+    const qq = ST.q.trim().toLowerCase(), seg = `<div class="seg" data-seg style="max-width:420px"><button class="${ST.psub === 'alumnos' ? 'on' : ''}" data-psub="alumnos">Alumnos</button><button class="${ST.psub === 'registro' ? 'on' : ''}" data-psub="registro">Registro de apoderados</button><i></i></div>`;
+    if (ST.psub === 'alumnos') body = seg + `<label class="search">${ic('users','s')}<input id="aq" placeholder="Buscar" value="${esc(ST.q)}"></label><div class="rows">${c.alumnos.filter(u => !qq || (u.nombre + u.email).toLowerCase().includes(qq)).map(u => { const a = c.auts.find(x => x.alumno_id === u.id), h = histC(u.id);
+      return `<div class="person" style="align-items:flex-start"><div class="avatar av ${u.colegio}">${ini(u.nombre)}</div><div class="pt"><b>${esc(u.nombre)}</b><small><span class="tag ${u.colegio}">${nomCol(u.colegio)}</span>${esc(u.curso)}, ${esc(u.email)}</small>
+        <small>${vigC(u.id) ? `<span class="tag ok">Autorizado por ${esc(a.apoderado_nombre || '')}</span>` : a && a.estado === 'pendiente' ? '<span class="tag warn">Esperando firma</span>' : '<span class="tag no">Sin autorización</span>'}<span class="tag">Fue ${h.veces}</span>${h.recientes.length ? `<span class="tag ${h.baja ? 'no' : 'warn'}">${h.recientes.length} faltas</span>` : ''}${c.reg[u.email.toLowerCase()] ? '' : '<span class="tag no">Sin apoderado en registro</span>'}</small>
+        ${a && a.firma ? `<img class="sigimg" src="${a.firma}" alt="Firma">` : ''}</div></div>`; }).join('') || '<div class="empty">Sin alumnos todavía.</div>'}</div>`;
+    else body = seg + `<div class="btns" style="margin-bottom:12px"><button class="btn pri" data-act="addreg">${ic('plus','s')}Agregar apoderado</button><button class="btn soft" data-act="importar">${ic('copy','s')}Pegar desde Excel</button></div>
+      <label class="search">${ic('users','s')}<input id="aq" placeholder="Buscar" value="${esc(ST.q)}"></label>
+      <div class="rows">${c.registro.filter(r => !qq || (r.alumno_email + r.nombre).toLowerCase().includes(qq)).map(r => `<div class="r"><div class="ri">${ic('user','s')}</div><div class="rt"><b>${esc(r.nombre)}</b><small>Apoderado de ${esc(r.alumno_email)}</small><small>RUT ${esc(r.rut)}, ${esc(r.correo)}${r.celular ? ', ' + esc(r.celular) : ''}</small></div><button class="btn sm soft" data-delreg="${esc(r.alumno_email)}" aria-label="Quitar">${ic('trash','s')}</button></div>`).join('') || '<div class="empty">El registro está vacío. Agrega a los apoderados para que puedan firmar.</div>'}</div>`;
   } else {
-    body = `<div class="cgrid two"><div>
-      <div class="sec" style="margin-top:0"><h2>Valores por defecto</h2><small>Para fechas nuevas</small></div>
-      <div class="card pad16"><div class="grid2"><label class="field"><span>Inicio</span><input type="text" inputmode="numeric" maxlength="5" id="dIni" value="${S.ajustes.inicio}"></label><label class="field"><span>Término</span><input type="text" inputmode="numeric" maxlength="5" id="dFin" value="${S.ajustes.fin}"></label></div>
-        <label class="field" style="margin-top:12px"><span>Punto de encuentro</span><input id="dLug" value="${esc(S.ajustes.lugar)}"></label>
-        <div style="margin-top:8px">
-          <div class="r" style="padding:10px 0"><div class="rt"><b>Cupos ${CONFIG.colegios.vd.nombre}</b></div><div class="stepper"><button data-dc="vd:-1" aria-label="Menos">−</button><b>${S.ajustes.cupos.vd}</b><button data-dc="vd:1" aria-label="Más">+</button></div></div>
-          <div class="r" style="padding:10px 0"><div class="rt"><b>Cupos ${CONFIG.colegios.vm.nombre}</b></div><div class="stepper"><button data-dc="vm:-1" aria-label="Menos">−</button><b>${S.ajustes.cupos.vm}</b><button data-dc="vm:1" aria-label="Más">+</button></div></div></div>
-        <button class="btn soft block" data-act="guardaraj">Guardar valores</button></div>
-      <div class="sec"><h2>Reglas</h2></div>
-      <div class="rows"><div class="r"><div class="ri">${ic('clock','s')}</div><div class="rt"><b>Bajarse sin falta hasta las ${String(CONFIG.bajaSinFalta).padStart(2,'0')}:00</b><small>del mismo día de la salida</small></div></div>
-        <div class="r"><div class="ri">${ic('ban','s')}</div><div class="rt"><b>${CONFIG.faltasParaBajar} faltas en 60 días bajan la prioridad</b><small>por ${CONFIG.diasPrioridadBaja} días. Se puede perdonar una falta.</small></div></div>
-        <div class="r"><div class="ri">${ic('lock','s')}</div><div class="rt"><b>Sesiones de ${CONFIG.sesionMin} minutos</b><small>Cada vez que se abre la app se pide un código nuevo</small></div></div></div>
-      </div><div>
-      <div class="sec" style="margin-top:0"><h2>Códigos de invitación</h2><small>Para quien no tiene correo del colegio</small></div>
-      <div class="rows">${S.codigos.map((k, i) => `<div class="r"><div class="ri ${k.activo ? 'y' : ''}">${ic('key','s')}</div><div class="rt"><b style="font-family:var(--display);letter-spacing:.04em">${esc(k.code)}</b><small>${CONFIG.colegios[k.colegio].nombre}, ${k.usos} ${k.usos === 1 ? 'uso' : 'usos'}</small></div>
-        <button class="btn sm ${k.activo ? 'danger' : 'soft'}" data-cod="${i}">${k.activo ? 'Desactivar' : 'Activar'}</button></div>`).join('')}</div>
-      <div class="btns" style="margin-top:10px"><button class="btn soft" data-newcod="vm">${ic('plus','s')}Código ${CONFIG.colegios.vm.nombre}</button><button class="btn soft" data-newcod="vd">${ic('plus','s')}Código ${CONFIG.colegios.vd.nombre}</button></div>
-      <div class="sec"><h2>Coordinadores</h2></div>
-      <div class="rows">${CONFIG.coordinadores.map(k => `<div class="r"><div class="ri">${ic('shield','s')}</div><div class="rt"><b>${esc(k.nombre)}</b><small>${esc(k.email)}</small></div></div>`).join('')}</div>
-      </div></div>`;
+    const aj = c.aj;
+    body = `<div class="cgrid two"><div><div class="sec" style="margin-top:0"><h2>Valores por defecto</h2></div>
+      <div class="card pad16"><div class="grid2"><label class="field"><span>Inicio (24 h)</span><input id="dIni" inputmode="numeric" maxlength="5" value="${t5(aj.inicio)}"></label><label class="field"><span>Término (24 h)</span><input id="dFin" inputmode="numeric" maxlength="5" value="${t5(aj.fin)}"></label></div>
+        <label class="field" style="margin-top:12px"><span>Punto de encuentro</span><input id="dLug" value="${esc(aj.lugar || '')}"></label>
+        <div class="grid2" style="margin-top:12px"><label class="field"><span>Cupos ${nomCol('vd')}</span><input id="dCvd" type="number" min="0" value="${aj.cupos_vd}"></label><label class="field"><span>Cupos ${nomCol('vm')}</span><input id="dCvm" type="number" min="0" value="${aj.cupos_vm}"></label></div>
+        <button class="btn soft block" style="margin-top:12px" data-act="guardaraj">Guardar</button></div>
+      <div class="sec"><h2>Coordinadores</h2><small>Se agregan en Supabase</small></div><div class="rows">${c.coords.map(k => `<div class="r"><div class="ri">${ic('shield','s')}</div><div class="rt"><b>${esc(k.nombre)}</b><small>${esc(k.email)}</small></div></div>`).join('')}</div></div>
+      <div><div class="sec" style="margin-top:0"><h2>Códigos de invitación</h2></div><div class="rows">${c.codigos.map(k => `<div class="r"><div class="ri ${k.activo ? 'y' : ''}">${ic('key','s')}</div><div class="rt"><b>${esc(k.codigo)}</b><small>${nomCol(k.colegio)}, ${k.usos} usos</small></div><button class="btn sm ${k.activo ? 'danger' : 'soft'}" data-cod="${esc(k.codigo)}" data-v="${k.activo ? 0 : 1}">${k.activo ? 'Desactivar' : 'Activar'}</button></div>`).join('') || '<div class="empty">Sin códigos.</div>'}</div>
+      <div class="btns" style="margin-top:10px"><button class="btn soft" data-newcod="vm">${ic('plus','s')}Código ${nomCol('vm')}</button><button class="btn soft" data-newcod="vd">${ic('plus','s')}Código ${nomCol('vd')}</button></div></div></div>`;
   }
-  return `<div class="shell wide view"><header class="top"><div class="mark">${ic('cup')}</div><div class="t"><b>Coordinación</b><small>${esc(c.nombre)}, ${esc(c.email)}</small></div>
-    <button class="btn sm line" data-act="clogout">${ic('out','s')}Salir</button></header>${tabs}${body}</div>`;
+  return `<div class="shell wide view"><header class="top"><div class="mark">${ic('cup')}</div><div class="t"><b>Coordinación</b><small>${esc(ST.email)}</small></div><button class="btn sm line" data-act="salir">${ic('out','s')}Salir</button></header>${tabs}${body}</div>`;
 }
-function vFechaDetalle(f){
-  const d = fromIso(f.fecha), dt = S.ui.dtab, sug = sugeridos(f.id), past = pasada(f);
-  const nS = solicitudes(f.id).length, nA = aceptados(f.id).length;
+function vFechaC(f){
+  const d = fromIso(f.dia), dt = ST.dtab, sug = sugeridos(f), past = esPasada(f);
+  const nS = solsDe(f.id, 'solicitud').length, nA = solsDe(f.id, 'aceptado').length;
   let panel;
   if (dt === 'solicitudes') {
-    const sols = solicitudes(f.id).sort((a, b) => puntaje(f.id, a) - puntaje(f.id, b));
-    const lib = c => f.cupos[c] - aceptados(f.id, c).length;
-    panel = `<div class="aviso" style="margin-bottom:12px;background:var(--crema)"><b style="color:var(--cink)">Prioridad justa</b><p class="small">Ordenadas por quién ha ido menos. Quienes faltaron sin avisar quedan al final. Quedan ${Math.max(0, lib('vd'))} cupos ${CONFIG.colegios.vd.nombre} y ${Math.max(0, lib('vm'))} ${CONFIG.colegios.vm.nombre}.</p></div>
+    const L3 = solsDe(f.id, 'solicitud').sort((a, b) => puntaje(a) - puntaje(b));
+    panel = `<div class="aviso" style="margin-bottom:12px;background:var(--crema)"><b style="color:var(--cink)">Prioridad justa</b><p class="small">Ordenadas por quién ha ido menos. Quienes faltaron sin avisar quedan al final.</p></div>
       ${sug.size ? `<button class="btn yel block" style="margin-bottom:12px" data-act="aceptsug">${ic('star','s')}Aceptar sugeridos (${sug.size})</button>` : ''}
-      <div class="rows">${sols.map(x => filaPersona(f, x, 'sol', sug.has(x.email))).join('') || `<div class="empty">${ic('inbox')}No hay solicitudes por revisar.</div>`}</div>
-      ${conEstado(f.id, 'rechazado').length ? `<p class="hint">${conEstado(f.id, 'rechazado').length} ${conEstado(f.id, 'rechazado').length === 1 ? 'persona quedó' : 'personas quedaron'} fuera esta vez y tendrán más prioridad en la próxima.</p>` : ''}`;
-  } else if (dt === 'aceptados') {
-    panel = `<div class="rows">${aceptados(f.id).map(x => filaPersona(f, x, 'acep')).join('') || `<div class="empty">Todavía no aceptas a nadie.</div>`}</div>
-      ${past ? `<p class="hint">Quien fue aceptado y no registró salida queda con falta. Puedes perdonarla si avisó por otro medio.</p>` : `<p class="hint">Aceptados ${nA} de ${f.cupos.vd + f.cupos.vm}. Al aceptarlos les llega un aviso a ellos y a su apoderado.</p>`}`;
-  } else {
-    const ac = aceptados(f.id), sal = ac.filter(x => x.salida).length, reg = ac.filter(x => x.regreso).length;
-    const faltan = ac.filter(x => x.salida && !x.regreso);
-    panel = `<div class="seg" data-seg><button class="${S.ui.porteria === 'salida' ? 'on' : ''}" data-pmode="salida">Salida</button><button class="${S.ui.porteria === 'regreso' ? 'on' : ''}" data-pmode="regreso">Regreso</button><i></i></div>
-      <div class="statrow" style="margin-bottom:12px"><div class="stat"><span class="big">${sal}/${ac.length}</span><small>salieron</small></div><div class="stat"><span class="big">${reg}/${sal}</span><small>volvieron</small></div>
-        <div class="stat" style="${faltan.length && S.ui.porteria === 'regreso' ? 'background:var(--redsoft)' : ''}"><span class="big">${faltan.length}</span><small>faltan por volver</small></div></div>
+      <div class="rows">${L3.map(s => persona(f, s, 'sol', sug.has(s.id))).join('') || `<div class="empty">${ic('inbox')}No hay solicitudes por revisar.</div>`}</div>`;
+  } else if (dt === 'aceptados') panel = `<div class="rows">${solsDe(f.id, 'aceptado').map(s => persona(f, s, 'acep')).join('') || '<div class="empty">Todavía no aceptas a nadie.</div>'}</div>`;
+  else {
+    const ac = solsDe(f.id, 'aceptado'), sal = ac.filter(s => s.salida).length, reg = ac.filter(s => s.regreso).length, faltan = ac.filter(s => s.salida && !s.regreso);
+    panel = `<div class="seg" data-seg><button class="${ST.porteria === 'salida' ? 'on' : ''}" data-pmode="salida">Salida</button><button class="${ST.porteria === 'regreso' ? 'on' : ''}" data-pmode="regreso">Regreso</button><i></i></div>
+      <div class="statrow" style="margin-bottom:12px"><div class="stat"><span class="big">${sal}/${ac.length}</span><small>salieron</small></div><div class="stat"><span class="big">${reg}/${sal}</span><small>volvieron</small></div><div class="stat" style="${faltan.length ? 'background:var(--redsoft)' : ''}"><span class="big">${faltan.length}</span><small>faltan por volver</small></div></div>
       <div class="scanbox" id="scanbox"><video id="vid" playsinline muted></video><canvas id="scv" hidden></canvas>
-        <div class="scanidle" id="scanidle">${ic('qr')}<p>Escanea el pase de cada alumno al ${S.ui.porteria === 'salida' ? 'salir' : 'volver'}</p>
-          <div class="btns" style="justify-content:center"><button class="btn pri" data-act="camara">${ic('scan','s')}Abrir cámara</button><button class="btn soft" data-act="simular">Simular escaneo</button></div></div></div>
-      ${S.ui.porteria === 'regreso' && faltan.length ? `<div class="aviso cancel" style="margin:12px 0"><b>Faltan por volver</b><p>${faltan.map(x => esc(S.users[x.email].nombre)).join(', ')}</p></div>` : ''}
-      <div class="sec" style="margin-top:16px"><h2>Marcar a mano</h2><small>Si alguien no trae su celular</small></div>
-      <div class="rows">${(S.ui.porteria === 'regreso' ? ac.filter(x => x.salida) : ac).map(x => filaPersona(f, x, 'port')).join('') || `<div class="empty">${S.ui.porteria === 'regreso' ? 'Todavía nadie ha salido.' : 'No hay aceptados para esta fecha.'}</div>`}</div>`;
+        <div class="scanidle">${ic('qr')}<p>Escanea el pase de cada alumno al ${ST.porteria === 'salida' ? 'salir' : 'volver'}</p><button class="btn pri" data-act="camara">${ic('scan','s')}Abrir cámara</button></div></div>
+      ${faltan.length && ST.porteria === 'regreso' ? `<div class="aviso cancel" style="margin:12px 0"><b>Faltan por volver</b><p>${faltan.map(s => esc((C_().al[s.alumno_id] || {}).nombre)).join(', ')}</p></div>` : ''}
+      <div class="sec" style="margin-top:16px"><h2>Marcar a mano</h2></div>
+      <div class="rows">${(ST.porteria === 'regreso' ? ac.filter(s => s.salida) : ac).map(s => persona(f, s, 'port')).join('') || '<div class="empty">Nadie por marcar.</div>'}</div>`;
   }
   return `<button class="back" data-act="volver">${ic('back','s')}Todas las fechas</button>
     <div class="card pad20"><div class="dhead"><div class="dt"><b>${d.getDate()}</b><small>${MESC[d.getMonth()]}</small></div>
-      <div style="min-width:0;flex:1"><h2>${cap(dLarga(f.fecha))}</h2><p class="meta" style="margin-top:4px">${ic('clock','s')}${f.inicio} a ${f.fin}</p><p class="meta">${ic('map','s')}${esc(f.lugar)}</p><div style="margin-top:8px">${estadoTag(f)}</div></div></div>
-      ${f.estado === 'cancelada' ? `<div class="aviso cancel" style="margin-top:12px"><b>Motivo</b><p>${esc(f.motivo)}</p></div>` : ''}
+      <div style="min-width:0;flex:1"><h2>${cap(dLarga(f.dia))}</h2><p class="meta">${ic('clock','s')}${t5(f.inicio)} a ${t5(f.fin)}</p><p class="meta">${ic('map','s')}${esc(f.lugar)}</p><div style="margin-top:8px">${estadoTag(f)}</div></div></div>
+      ${f.estado === 'cancelada' ? `<div class="aviso cancel" style="margin-top:12px"><b>Motivo</b><p>${esc(f.motivo || '')}</p></div>` : ''}
       <div class="btns" style="margin-top:14px"><button class="btn sm soft" data-act="editar">${ic('edit','s')}Editar</button>
-        ${past ? '' : f.estado === 'cancelada' ? `<button class="btn sm soft" data-act="reactivar">Reactivar</button>` : `<button class="btn sm soft" data-act="cerrar">${f.estado === 'cerrada' ? 'Reabrir solicitudes' : 'Cerrar solicitudes'}</button><button class="btn sm soft" data-act="avisoh">${ic('send','s')}Aviso</button><button class="btn sm danger" data-act="cancelar">${ic('ban','s')}No hay café</button>`}
+        ${past ? '' : f.estado === 'cancelada' ? `<button class="btn sm soft" data-act="reactivar">Reactivar</button>` : `<button class="btn sm soft" data-act="cerrar">${f.estado === 'cerrada' ? 'Reabrir' : 'Cerrar solicitudes'}</button><button class="btn sm soft" data-act="avisoh">${ic('send','s')}Aviso</button><button class="btn sm danger" data-act="cancelar">${ic('ban','s')}No hay café</button>`}
         <button class="btn sm danger" data-act="eliminar">${ic('trash','s')}Eliminar</button><button class="btn sm soft" data-act="copiar">${ic('copy','s')}Copiar lista</button></div></div>
-    ${f.estado === 'cancelada' ? '' : `<nav class="dtabs" aria-label="Secciones de la fecha">${[['solicitudes',`Solicitudes${nS ? ` <span class="n">${nS}</span>` : ''}`],['aceptados',`Aceptados ${nA}`],['porteria','Portería']].map(([k,l]) => `<button class="${dt === k ? 'on' : ''}" data-dt2="${k}">${l}</button>`).join('')}</nav>${panel}`}`;
+    ${f.estado === 'cancelada' ? '' : `<nav class="dtabs">${[['solicitudes',`Solicitudes${nS ? ` <span class="n">${nS}</span>` : ''}`],['aceptados',`Aceptados ${nA}`],['porteria','Portería']].map(([k,l]) => `<button class="${dt === k ? 'on' : ''}" data-dt2="${k}">${l}</button>`).join('')}</nav>${panel}`}`;
 }
-function hojaEditarFecha(f){
-  const nueva = !f; f = f || { fecha:iso(hoy()), inicio:S.ajustes.inicio, fin:S.ajustes.fin, lugar:S.ajustes.lugar, cupos:{ ...S.ajustes.cupos }, nota:'' };
-  openSheet(nueva ? 'Nueva fecha' : 'Editar fecha', `
-    <label class="field"><span>Día</span><input type="date" id="fF" value="${f.fecha}"></label>
-    <div class="grid2" style="margin-top:12px"><label class="field"><span>Inicio (24 h)</span><input type="text" inputmode="numeric" maxlength="5" placeholder="15:30" id="fI" value="${f.inicio}"></label><label class="field"><span>Término (24 h)</span><input type="text" inputmode="numeric" maxlength="5" placeholder="18:30" id="fT" value="${f.fin}"></label></div>
+function hojaFechaC(f){
+  const aj = C_().aj, n = !f; f = f || { dia:iso(hoy()), inicio:aj.inicio, fin:aj.fin, lugar:aj.lugar, cupos_vd:aj.cupos_vd, cupos_vm:aj.cupos_vm, nota:'' };
+  openSheet(n ? 'Nueva fecha' : 'Editar fecha', `<label class="field"><span>Día</span><input type="date" id="fF" value="${f.dia}"></label>
+    <div class="grid2" style="margin-top:12px"><label class="field"><span>Inicio (24 h)</span><input id="fI" inputmode="numeric" maxlength="5" value="${t5(f.inicio)}"></label><label class="field"><span>Término (24 h)</span><input id="fT" inputmode="numeric" maxlength="5" value="${t5(f.fin)}"></label></div>
     <label class="field" style="margin-top:12px"><span>Punto de encuentro</span><input id="fL" value="${esc(f.lugar)}"></label>
-    <div class="grid2" style="margin-top:12px"><label class="field"><span>Cupos ${CONFIG.colegios.vd.nombre}</span><input type="number" min="0" max="60" id="fCvd" value="${f.cupos.vd}"></label><label class="field"><span>Cupos ${CONFIG.colegios.vm.nombre}</span><input type="number" min="0" max="60" id="fCvm" value="${f.cupos.vm}"></label></div>
-    <label class="field" style="margin-top:12px"><span>Nota para los alumnos (opcional)</span><textarea id="fN" maxlength="200" placeholder="Ej: Esta vez vamos a la Plaza Las Lilas">${esc(f.nota)}</textarea></label>
-    <div class="err" id="ferr"></div><button class="btn pri block" data-guardarf="${nueva ? '' : f.id}">${nueva ? 'Crear fecha' : 'Guardar cambios'}</button>`);
-}
-function hojaCancelar(f){
-  openSheet('No hay café esta fecha', `<p class="muted" style="margin-bottom:14px">La fecha queda visible como cancelada y se avisa a las ${lista(f.id).length} personas que pidieron unirse.</p>
-    <label class="field"><span>Motivo</span><textarea id="cM" maxlength="160" placeholder="Ej: Por la lluvia suspendemos esta semana"></textarea></label>
-    <div class="err" id="cerr2"></div><button class="btn danger block" data-cancelok="${f.id}">${ic('ban','s')}Avisar y cancelar</button>`);
-}
-function hojaAviso(f){
-  openSheet('Aviso a los aceptados', `${(S.avisos[f.id] || []).map(a => `<div class="aviso" style="margin-bottom:8px"><b>${esc(a.de)} · ${hace(a.ts)}</b><p>${esc(a.t)}</p></div>`).join('')}
-    <label class="field"><span>Mensaje</span><textarea id="avt" maxlength="160" placeholder="Ej: Hoy salimos 15:40 por la lluvia"></textarea></label>
-    <p class="hint">Les llega a los ${aceptados(f.id).length} aceptados de esta fecha.</p><button class="btn pri block" style="margin-top:12px" data-act="aviso">${ic('send','s')}Enviar aviso</button>`);
-}
-function hojaRegistro(){
-  openSheet('Agregar apoderado al registro', `<p class="muted" style="margin-bottom:14px">Usa los datos oficiales del colegio. El link de autorización se mandará solo a este correo.</p>
-    <label class="field"><span>Correo del alumno</span><input id="rA" type="email" placeholder="nombre@${CONFIG.colegios.vd.dominio}"></label>
-    <label class="field"><span>Nombre del apoderado</span><input id="rN"></label>
-    <div class="grid2" style="margin-top:12px"><label class="field"><span>RUT</span><input id="rR" placeholder="12.345.678-9"></label><label class="field"><span>Celular</span><input id="rC" type="tel" placeholder="+56912345678"></label></div>
-    <label class="field" style="margin-top:12px"><span>Correo del apoderado</span><input id="rM" type="email"></label>
-    <div class="err" id="rerr"></div><button class="btn pri block" data-act="guardarreg">Agregar al registro</button>`);
-}
-function hojaImportar(){
-  openSheet('Pegar desde Excel', `<p class="muted" style="margin-bottom:12px">Copia desde Excel o Google Sheets estas columnas, en este orden: correo del alumno, nombre del apoderado, RUT, correo del apoderado, celular.</p>
-    <label class="field"><span>Datos</span><textarea id="rI" style="min-height:150px;font-size:14px" placeholder="martina.r@villamaria.cl	Paula Rojas	11.111.111-1	paula.rojas@gmail.com	+56912345678"></textarea></label>
-    <div class="err" id="rerr"></div><button class="btn pri block" data-act="importok">Importar</button>`);
+    <div class="grid2" style="margin-top:12px"><label class="field"><span>Cupos ${nomCol('vd')}</span><input type="number" min="0" id="fCvd" value="${f.cupos_vd}"></label><label class="field"><span>Cupos ${nomCol('vm')}</span><input type="number" min="0" id="fCvm" value="${f.cupos_vm}"></label></div>
+    <label class="field" style="margin-top:12px"><span>Nota (opcional)</span><textarea id="fN" maxlength="200">${esc(f.nota || '')}</textarea></label>
+    <div class="err" id="ferr"></div><button class="btn pri block" data-guardarf="${n ? '' : f.id}">${n ? 'Crear fecha' : 'Guardar'}</button>`);
 }
 
-/* ---------- portería: escaneo de QR ---------- */
+/* ---------- cámara ---------- */
 let cam = null;
 async function abrirCamara(){
-  const box = $('#scanbox'), vid = $('#vid'), cv = $('#scv');
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return toast('Este navegador no permite usar la cámara');
-  if (typeof jsQR !== 'function') return toast('No se pudo cargar el lector de QR');
+  if (!navigator.mediaDevices || typeof jsQR !== 'function') return toast('Este navegador no permite escanear. Marca a mano');
   try {
     const st = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' }, audio:false });
-    vid.srcObject = st; await vid.play(); box.classList.add('live');
-    const g = cv.getContext('2d', { willReadFrequently:true });
-    cam = { st, raf:0, last:'' };
-    const loop = () => {
-      if (!cam) return;
+    const vid = $('#vid'), cv = $('#scv'), g = cv.getContext('2d', { willReadFrequently:true });
+    vid.srcObject = st; await vid.play(); $('#scanbox').classList.add('live'); cam = { st, raf:0, last:'' };
+    const loop = () => { if (!cam) return;
       if (vid.readyState >= 2) { cv.width = vid.videoWidth; cv.height = vid.videoHeight; g.drawImage(vid, 0, 0); const r = jsQR(g.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height);
-        if (r && r.data && r.data !== cam.last) { cam.last = r.data; procesarQR(r.data); setTimeout(() => { if (cam) cam.last = ''; }, 2500); } }
-      cam.raf = requestAnimationFrame(loop);
-    };
+        if (r && r.data && r.data !== cam.last) { cam.last = r.data; marcarQR(r.data.replace(/^CS1:/, ''), true); setTimeout(() => { if (cam) cam.last = ''; }, 2500); } }
+      cam.raf = requestAnimationFrame(loop); };
     loop();
-  } catch (e) { toast('No se pudo abrir la cámara. Revisa los permisos o marca a mano'); }
+  } catch (e) { toast('No se pudo abrir la cámara. Revisa los permisos'); }
 }
 function cerrarCamara(){ if (!cam) return; cancelAnimationFrame(cam.raf); cam.st.getTracks().forEach(t => t.stop()); cam = null; }
-function procesarQR(txt){
-  const f = fecha(S.ui.cfecha), m = String(txt).match(/^CS1:([a-z0-9]+):([a-z0-9]+)$/);
-  const flash = (ok, msg) => { const b = $('#scanbox'); if (b) { b.classList.remove('ok','bad'); void b.offsetWidth; b.classList.add(ok ? 'ok' : 'bad'); } toast(msg); if (navigator.vibrate) navigator.vibrate(ok ? 40 : [60, 40, 60]); };
-  if (!m) return flash(false, 'Este QR no es un pase de Café Solidario');
-  if (m[1] !== f.id) return flash(false, 'Este pase es de otra fecha');
-  const x = lista(f.id).find(y => y.qr === m[2]);
-  if (!x || x.estado !== 'aceptado') return flash(false, 'Este pase no está aceptado para hoy');
-  marcar(x, f, flash);
-}
-function marcar(x, f, flash){
-  const u = S.users[x.email], k = S.ui.porteria, reg = S.registro[x.email], a = S.auth[x.email];
-  if (k === 'salida') {
-    if (x.salida) return flash(false, `${u.nombre.split(' ')[0]} ya salió a las ${hhmm(x.salida)}`);
-    x.salida = Date.now(); log(`${u.nombre} salió (${dLarga(f.fecha)})`);
-    flash(true, `${u.nombre} · salida ${hhmm(x.salida)}`);
-    if (a && a.avisar && reg) setTimeout(() => aviso('sms', 'Café Solidario', `${esc(u.nombre.split(' ')[0])} salió del colegio a las ${hhmm(x.salida)}.`, reg.cel), 400);
-  } else {
-    if (!x.salida) return flash(false, `${u.nombre.split(' ')[0]} no tiene salida registrada`);
-    if (x.regreso) return flash(false, `${u.nombre.split(' ')[0]} ya volvió a las ${hhmm(x.regreso)}`);
-    x.regreso = Date.now(); log(`${u.nombre} volvió al colegio (${dLarga(f.fecha)})`);
-    flash(true, `${u.nombre} · regreso ${hhmm(x.regreso)}`);
-    if (a && a.avisar && reg) setTimeout(() => aviso('sms', 'Café Solidario', `${esc(u.nombre.split(' ')[0])} volvió al colegio a las ${hhmm(x.regreso)}.`, reg.cel), 400);
-  }
-  save(); const habia = !!cam; render(); if (habia) abrirCamara();
+async function marcarQR(qr, conCam){
+  const b = $('#scanbox');
+  try { const r = await rpc('marcar_qr', { p_qr:qr, p_tipo:ST.porteria });
+    if (b) { b.classList.remove('ok','bad'); void b.offsetWidth; b.classList.add('ok'); } if (navigator.vibrate) navigator.vibrate(40);
+    await cargarCoord(); render(); toast(`${r.nombre} · ${r.tipo} ${r.hora}`); if (conCam) abrirCamara(); }
+  catch (e) { if (b) { b.classList.remove('ok','bad'); void b.offsetWidth; b.classList.add('bad'); } if (navigator.vibrate) navigator.vibrate([60,40,60]); toast(msgError(e)); }
 }
 
 /* =========================================================
@@ -1103,7 +914,7 @@ let sheet = null;
 function openSheet(title, html){
   closeSheet(true);
   const bd = document.createElement('div'); bd.className = 'bd';
-  const el = document.createElement('div'); el.className = 'sheet'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label', title || 'Detalle');
+  const el = document.createElement('div'); el.className = 'sheet'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true');
   el.innerHTML = `<div class="hd"><h2>${title}</h2><button class="x" data-close aria-label="Cerrar">${ic('x')}</button></div><div class="bdy">${html}</div>`;
   document.body.append(bd, el); bd.onclick = () => closeSheet();
   requestAnimationFrame(() => requestAnimationFrame(() => { bd.classList.add('on'); el.classList.add('on'); }));
@@ -1114,144 +925,123 @@ function closeSheet(now){
   if (now) { el.remove(); bd.remove(); return; }
   el.classList.remove('on'); bd.classList.remove('on'); setTimeout(() => { el.remove(); bd.remove(); }, 400);
 }
-function syncSegs(){ $$('[data-seg]').forEach(s => { const on = s.querySelector('button.on'), th = s.querySelector('i'); if (!on || !th) return; th.style.width = on.offsetWidth + 'px'; th.style.transform = `translateX(${on.offsetLeft - (s.id === 'roles' ? 3 : 4)}px)`; }); }
+function syncSegs(){ $$('[data-seg]').forEach(s => { const on = s.querySelector('button.on'), th = s.querySelector('i'); if (!on || !th) return; th.style.width = on.offsetWidth + 'px'; th.style.transform = `translateX(${on.offsetLeft - 4}px)`; }); }
 function render(){
-  cerrarCamara(); sesionViva();
-  if (tokenHash()) S.ui.role = 'apoderado';
-  $$('#roles button').forEach(b => b.classList.toggle('on', b.dataset.role === S.ui.role));
-  const r = S.ui.role;
-  $('#app').innerHTML = r === 'apoderado' ? vApoderado() : r === 'coord' ? vCoord() : vAlumno();
-  if (r === 'alumno' && !yo()) bindLogin();
-  if (r === 'apoderado') bindApoderado();
-  if (r === 'coord' && !coordYo()) bindCoordLogin();
-  if (yo() || coordYo()) saveSes();
+  cerrarCamara();
+  let h;
+  if (!ST.rol) h = vIngreso();
+  else if (ST.rol === 'coord') h = vCoord();
+  else if (ST.rol === 'apoderado') h = vApoderado();
+  else h = vAlumno();
+  $('#app').innerHTML = h;
+  if (!ST.rol) bindIngreso();
+  if (ST.rol === 'alumno' && !ST.alumno) bindPerfil();
   requestAnimationFrame(syncSegs);
 }
-function setRole(r){
-  S.ui.role = r; OTP = null; $('#notif').classList.remove('on');
-  if (r !== 'apoderado' && tokenHash()) history.replaceState(null, '', location.pathname + location.search);
-  save(); closeSheet(true); render(); window.scrollTo(0, 0);
-}
-function quitarFuturas(email){ futuras().forEach(f => { S.insc[f.id] = lista(f.id).filter(x => x.email !== email); }); }
-const nombre1 = e => S.users[e].nombre.split(' ')[0];
+const conTry = fn => async (...a) => { try { await fn(...a); } catch (e) { toast(msgError(e)); } };
 
-document.addEventListener('click', e => {
+document.addEventListener('click', conTry(async e => {
   const t = e.target; let el;
-  if ((el = t.closest('#roles button'))) return setRole(el.dataset.role);
-  if (t.closest('#reset')) { if (!confirm('¿Borrar todos los datos del prototipo y empezar de cero?')) return; seed(); save(); SES = { alumno:null, coord:null, exp:0 }; saveSes(); L = { paso:'correo', email:'', colegio:null, conCodigo:false }; A = { paso:'rut' }; C = { paso:'correo', email:'' }; history.replaceState(null, '', location.pathname); closeSheet(true); render(); return toast('Prototipo reiniciado'); }
   if (t.closest('[data-close]')) return closeSheet();
+  if ((el = t.closest('[data-modo]'))) { setModo(el.dataset.modo); L.paso = 'correo'; return render(); }
+  if ((el = t.closest('[data-copy]'))) { navigator.clipboard && navigator.clipboard.writeText(el.dataset.copy).then(() => toast('Link copiado')); return; }
 
   /* alumno */
-  if ((el = t.closest('[data-tab]'))) { S.ui.tab = el.dataset.tab; save(); render(); return window.scrollTo(0, 0); }
+  if ((el = t.closest('[data-tab]'))) { ST.tab = el.dataset.tab; render(); return window.scrollTo(0, 0); }
   if ((el = t.closest('[data-fecha]'))) return hojaFecha(el.dataset.fecha);
-  if ((el = t.closest('[data-sol]'))) return solicitar(el.dataset.sol);
-  if ((el = t.closest('[data-baja]'))) return retirar(el.dataset.baja);
+  if ((el = t.closest('[data-sol]'))) { el.disabled = true; const f = ST.fechas.find(x => x.id === el.dataset.sol); await rpc('pedir_unirme', { p_fecha:f.id }); await cargarAlumno(); closeSheet(); render(); return taza(f); }
+  if ((el = t.closest('[data-baja]'))) {
+    const s = miSol(el.dataset.baja), lim = t5(ST.ajustes.baja_sin_falta) || '12:00', f = ST.fechas.find(x => x.id === el.dataset.baja);
+    if (s.estado === 'aceptado' && f.dia === iso(hoy()) && hhmm(new Date()) >= lim && !confirm(`Ya pasaron las ${lim}. Si te bajas ahora, cuenta como falta. ¿Bajarte igual?`)) return;
+    const r = await rpc('retirarme', { p_fecha:f.id }); await cargarAlumno(); closeSheet(); render(); return toast(r === 'falta' ? 'Avisamos a la coordinación. Cuenta como falta' : 'Listo');
+  }
+
+  /* apoderado */
+  if ((el = t.closest('[data-firmar]'))) return hojaFirma(el.dataset.firmar);
+  if ((el = t.closest('[data-avisar]'))) { await rpc('apoderado_avisos', { p_alumno:el.dataset.avisar, p_avisar:el.dataset.v === '1' }); ST.apo = await rpc('apoderado_mis_alumnos'); return render(); }
+  if ((el = t.closest('[data-revocar]'))) { if (!confirm('¿Revocar la autorización? Se cancelan sus solicitudes futuras.')) return; await rpc('apoderado_revocar', { p_alumno:el.dataset.revocar }); ST.apo = await rpc('apoderado_mis_alumnos'); render(); return toast('Autorización revocada'); }
 
   if ((el = t.closest('[data-act]'))) {
-    const a = el.dataset.act, f = S.ui.cfecha && fecha(S.ui.cfecha);
+    const a = el.dataset.act, f = ST.cfecha && ST.c && fechaC(ST.cfecha);
     switch (a) {
-      case 'pedir': case 'reenviar': return pedir();
-      case 'asapo': { const u = yo() || S.users['martina.r@villamaria.cl']; const tok = u && S.auth[u.email] && S.auth[u.email].token; if (!tok) return toast('Primero pide la autorización como alumno'); $('#notif').classList.remove('on'); closeSheet(true); history.replaceState(null, '', '#firmar=' + tok); A = { paso:'rut' }; return setRole('apoderado'); }
-      case 'logout': SES.alumno = null; saveSes(); S.ui.tab = 'inicio'; save(); render(); return toast('Sesión cerrada');
-      case 'avisar': { const em = emailDelToken(); if (em) { S.auth[em].avisar = !S.auth[em].avisar; save(); render(); } return; }
-      case 'revocar': { const em = emailDelToken(); if (!em || !confirm('¿Revocar la autorización? Se cancelan sus solicitudes y salidas futuras.')) return;
-        S.auth[em].estado = 'revocada'; quitarFuturas(em); log(`El apoderado de ${S.users[em].nombre} revocó la autorización`); save(); render(); return toast('Autorización revocada'); }
-      case 'clogout': SES.coord = null; saveSes(); S.ui.cfecha = null; save(); return render();
-      case 'nueva': return hojaEditarFecha(null);
-      case 'editar': return hojaEditarFecha(f);
+      case 'volverinicio': L.paso = 'inicio'; return render();
+      case 'salir': return salir();
+      case 'pedir': { const m = await rpc('pedir_autorizacion'); await cargarAlumno(); render(); return compartir(m); }
+      case 'compartir': return compartir();
+      case 'recargar': return recargar('Actualizado');
+      case 'nueva': return hojaFechaC(null);
+      case 'editar': return hojaFechaC(f);
       case 'mes': {
-        const d = hoy(); d.setMonth(d.getMonth() + 1, 1); const m = d.getMonth(); let n = 0;
-        while (d.getMonth() === m) { if (d.getDay() === 3 && !S.fechas.some(x => x.fecha === iso(d))) { S.fechas.push(nuevaFecha(iso(d))); n++; } d.setDate(d.getDate() + 1); }
-        log(`Se agregaron ${n} fechas de ${MES[m]}`); save(); render(); return toast(n ? `Agregamos ${n} miércoles de ${MES[m]}` : `Los miércoles de ${MES[m]} ya estaban creados`);
+        const d = hoy(); d.setMonth(d.getMonth() + 1, 1); const m = d.getMonth(), aj = C_().aj, rows = [];
+        while (d.getMonth() === m) { if (d.getDay() === 3 && !C_().fechas.some(x => x.dia === iso(d))) rows.push({ dia:iso(d), inicio:aj.inicio, fin:aj.fin, lugar:aj.lugar, cupos_vd:aj.cupos_vd, cupos_vm:aj.cupos_vm }); d.setDate(d.getDate() + 1); }
+        if (rows.length) { await q(sb.from('fechas').insert(rows)); await logC(`Se agregaron ${rows.length} fechas de ${MES[m]}`); }
+        return recargar(rows.length ? `Agregamos ${rows.length} miércoles de ${MES[m]}` : `Los miércoles de ${MES[m]} ya estaban creados`);
       }
-      case 'volver': S.ui.cfecha = null; save(); return render();
-      case 'cerrar': f.estado = f.estado === 'cerrada' ? 'abierta' : 'cerrada'; save(); render(); return toast(f.estado === 'cerrada' ? 'Solicitudes cerradas' : 'Solicitudes abiertas');
-      case 'cancelar': return hojaCancelar(f);
-      case 'avisoh': return hojaAviso(f);
-      case 'reactivar': f.estado = 'abierta'; f.motivo = ''; log(`Se reactivó el ${dLarga(f.fecha)}`); save(); render(); return toast('Fecha reactivada');
-      case 'eliminar': {
-        const n = lista(f.id).length;
-        if (!confirm(n ? `${n} personas pidieron unirse a esta fecha. ¿Eliminarla igual? Si solo no se hará, mejor usa "No hay café" para que les llegue el aviso.` : '¿Eliminar esta fecha?')) return;
-        S.fechas = S.fechas.filter(x => x.id !== f.id); delete S.insc[f.id]; delete S.avisos[f.id]; S.ui.cfecha = null; log(`Se eliminó el ${dLarga(f.fecha)}`); save(); render(); return toast('Fecha eliminada');
-      }
-      case 'aviso': { const v = $('#avt').value.trim(); if (!v) return; (S.avisos[f.id] = S.avisos[f.id] || []).push({ t:v, de:coordYo().nombre, ts:Date.now() }); log(`Aviso enviado para el ${dLarga(f.fecha)}`); save(); closeSheet(); render(); return toast(`Aviso enviado a ${aceptados(f.id).length} aceptados`); }
-      case 'copiar': {
-        const rows = [['Nombre','Colegio','Curso','Estado','Salida','Regreso','Apoderado','Celular apoderado']].concat(lista(f.id).map(x => { const u = S.users[x.email], r = S.registro[x.email] || {}; return [u.nombre, CONFIG.colegios[u.colegio].nombre, u.curso, x.estado, x.salida ? hhmm(x.salida) : '', x.regreso ? hhmm(x.regreso) : '', r.nombre || '', r.cel || '']; }));
-        (navigator.clipboard ? navigator.clipboard.writeText(rows.map(r => r.join('\t')).join('\n')) : Promise.reject()).then(() => toast('Lista copiada. Pégala en Excel o Google Sheets'), () => toast('No se pudo copiar en este navegador')); return;
-      }
-      case 'aceptsug': { const sg = sugeridos(f.id); lista(f.id).forEach(x => { if (sg.has(x.email)) x.estado = 'aceptado'; }); log(`Se aceptaron ${sg.size} solicitudes para el ${dLarga(f.fecha)}`); save(); render(); return toast(`Aceptaste a ${sg.size} personas. Les avisamos a ellos y a sus apoderados`); }
+      case 'volver': ST.cfecha = null; return render();
+      case 'cerrar': await q(sb.from('fechas').update({ estado:f.estado === 'cerrada' ? 'abierta' : 'cerrada' }).eq('id', f.id)); return recargar();
+      case 'reactivar': await q(sb.from('fechas').update({ estado:'abierta', motivo:null }).eq('id', f.id)); return recargar('Fecha reactivada');
+      case 'cancelar': return openSheet('No hay café esta fecha', `<label class="field"><span>Motivo (lo verán los alumnos)</span><textarea id="cM" maxlength="160"></textarea></label><div class="err" id="cerr2"></div><button class="btn danger block" data-cancelok="${f.id}">${ic('ban','s')}Cancelar la salida</button>`);
+      case 'avisoh': return openSheet('Aviso a los inscritos', `<label class="field"><span>Mensaje</span><textarea id="avt" maxlength="300"></textarea></label><button class="btn pri block" style="margin-top:12px" data-act="aviso">${ic('send','s')}Publicar aviso</button>`);
+      case 'aviso': { const v = $('#avt').value.trim(); if (!v) return; await q(sb.from('avisos').insert({ fecha_id:f.id, texto:v, autor:'Coordinación' })); closeSheet(); return recargar('Aviso publicado'); }
+      case 'eliminar': { const n = solsDe(f.id).length; if (!confirm(n ? `${n} personas pidieron unirse. ¿Eliminarla igual? Si solo no se hará, mejor usa "No hay café".` : '¿Eliminar esta fecha?')) return;
+        await q(sb.from('fechas').delete().eq('id', f.id)); await logC(`Se eliminó el ${dLarga(f.dia)}`); ST.cfecha = null; return recargar('Fecha eliminada'); }
+      case 'copiar': { const rows = [['Nombre','Colegio','Curso','Estado','Salida','Regreso','Apoderado','Celular']].concat(solsDe(f.id).map(s => { const u = C_().al[s.alumno_id] || {}, r = C_().reg[(u.email || '').toLowerCase()] || {}; return [u.nombre, nomCol(u.colegio), u.curso, s.estado, s.salida ? hhmm(s.salida) : '', s.regreso ? hhmm(s.regreso) : '', r.nombre || '', r.celular || '']; }));
+        return navigator.clipboard.writeText(rows.map(r => r.join('\t')).join('\n')).then(() => toast('Lista copiada para Excel')); }
+      case 'aceptsug': { const ids = [...sugeridos(f)]; if (!ids.length) return; await q(sb.from('solicitudes').update({ estado:'aceptado' }).in('id', ids)); await logC(`Se aceptaron ${ids.length} solicitudes para el ${dLarga(f.dia)}`); return recargar(`Aceptaste a ${ids.length} personas`); }
       case 'camara': return abrirCamara();
-      case 'simular': {
-        const k = S.ui.porteria, x = aceptados(f.id).find(y => k === 'salida' ? !y.salida : y.salida && !y.regreso);
-        if (!x) return toast(k === 'salida' ? 'Ya salieron todos los aceptados' : 'No queda nadie por volver');
-        return procesarQR('CS1:' + f.id + ':' + x.qr);
-      }
-      case 'guardaraj': { const i1 = hm($('#dIni').value), f1 = hm($('#dFin').value); if (!i1 || !f1 || f1 <= i1) return toast('Revisa el horario, en formato 24 horas'); S.ajustes.inicio = i1; S.ajustes.fin = f1; S.ajustes.lugar = $('#dLug').value.trim() || S.ajustes.lugar; save(); render(); return toast('Valores guardados'); }
-      case 'addreg': return hojaRegistro();
-      case 'importar': return hojaImportar();
-      case 'guardarreg': {
-        const err = m => $('#rerr').textContent = m, al = $('#rA').value.trim().toLowerCase(), n = $('#rN').value.trim(), r = $('#rR').value.trim(), c = $('#rC').value.replace(/[\s-]/g,''), m = $('#rM').value.trim().toLowerCase();
-        if (!colDe(al) && !S.users[al]) return err('El correo del alumno debe ser de uno de los colegios');
-        if (n.split(/\s+/).length < 2) return err('Escribe nombre y apellido del apoderado');
-        if (!rutOk(r)) return err('El RUT no es válido');
-        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)) return err('Escribe el correo del apoderado');
-        S.registro[al] = { nombre:n, rut:fmtRut(r), correo:m, cel:c }; log(`Se agregó a ${n} al registro de apoderados`); save(); closeSheet(); render(); return toast('Apoderado agregado');
-      }
-      case 'importok': {
-        const lines = $('#rI').value.split(/\r?\n/).map(l => l.split(/\t|;|,/).map(x => x.trim())).filter(l => l.length >= 4 && l[0]); let ok = 0, malo = 0;
-        lines.forEach(([al, n, r, m, c]) => { if ((colDe(al) || S.users[al]) && rutOk(r) && /@/.test(m)) { S.registro[al.toLowerCase()] = { nombre:n, rut:fmtRut(r), correo:m.toLowerCase(), cel:c || '' }; ok++; } else malo++; });
-        if (!ok) return $('#rerr').textContent = 'No encontramos filas válidas. Revisa el orden de las columnas';
-        log(`Se importaron ${ok} apoderados`); save(); closeSheet(); render(); return toast(`Importamos ${ok}${malo ? `, ${malo} con errores se omitieron` : ''}`);
-      }
+      case 'guardaraj': { const i1 = hm($('#dIni').value), f1 = hm($('#dFin').value); if (!i1 || !f1 || f1 <= i1) return toast('Revisa el horario, en formato 24 horas');
+        await q(sb.from('ajustes').update({ inicio:i1, fin:f1, lugar:$('#dLug').value.trim(), cupos_vd:+$('#dCvd').value, cupos_vm:+$('#dCvm').value }).eq('id', 1)); return recargar('Guardado'); }
+      case 'addreg': return openSheet('Agregar apoderado', `<label class="field"><span>Correo del alumno</span><input id="rA" type="email"></label><label class="field"><span>Nombre del apoderado</span><input id="rN"></label>
+        <div class="grid2" style="margin-top:12px"><label class="field"><span>RUT</span><input id="rR"></label><label class="field"><span>Celular</span><input id="rC" type="tel"></label></div>
+        <label class="field" style="margin-top:12px"><span>Correo del apoderado</span><input id="rM" type="email"></label><div class="err" id="rerr"></div><button class="btn pri block" data-act="guardarreg">Agregar</button>`);
+      case 'guardarreg': { const err = m => $('#rerr').textContent = m, al = $('#rA').value.trim().toLowerCase(), n = $('#rN').value.trim(), r = $('#rR').value, m = $('#rM').value.trim().toLowerCase();
+        if (!/@/.test(al) || !/@/.test(m)) return err('Revisa los correos'); if (n.split(/\s+/).length < 2) return err('Nombre y apellido'); if (!rutOk(r)) return err('RUT no válido');
+        await q(sb.from('registro_apoderados').upsert({ alumno_email:al, nombre:n, rut:fmtRut(r), correo:m, celular:$('#rC').value.trim() })); closeSheet(); return recargar('Apoderado agregado'); }
+      case 'importar': return openSheet('Pegar desde Excel', `<p class="muted" style="margin-bottom:12px">Columnas en este orden: correo del alumno, nombre del apoderado, RUT, correo del apoderado, celular.</p><label class="field"><span>Datos</span><textarea id="rI" style="min-height:160px;font-size:14px"></textarea></label><div class="err" id="rerr"></div><button class="btn pri block" data-act="importok">Importar</button>`);
+      case 'importok': { const rows = $('#rI').value.split(/\r?\n/).map(l => l.split(/\t|;/).map(x => x.trim())).filter(l => l.length >= 4 && /@/.test(l[0]) && rutOk(l[2]) && /@/.test(l[3])).map(([al, n, r, m, c]) => ({ alumno_email:al.toLowerCase(), nombre:n, rut:fmtRut(r), correo:m.toLowerCase(), celular:c || '' }));
+        if (!rows.length) return $('#rerr').textContent = 'No encontramos filas válidas. Revisa el orden de las columnas';
+        await q(sb.from('registro_apoderados').upsert(rows)); closeSheet(); return recargar(`Importamos ${rows.length} apoderados`); }
     }
   }
 
   /* coordinación */
-  if ((el = t.closest('[data-ctab]'))) { S.ui.ctab = el.dataset.ctab; S.ui.cfecha = null; S.ui.q = ''; save(); render(); return window.scrollTo(0, 0); }
-  if ((el = t.closest('[data-open]'))) { S.ui.cfecha = el.dataset.open; S.ui.ctab = 'fechas'; const f = fecha(el.dataset.open); S.ui.dtab = el.dataset.dt || (pasada(f) ? 'aceptados' : solicitudes(f.id).length ? 'solicitudes' : 'aceptados'); save(); render(); return window.scrollTo(0, 0); }
-  if ((el = t.closest('[data-dt2]'))) { S.ui.dtab = el.dataset.dt2; save(); return render(); }
-  if ((el = t.closest('[data-pmode]'))) { S.ui.porteria = el.dataset.pmode; save(); return render(); }
-  if ((el = t.closest('[data-acept]'))) { const f = fecha(S.ui.cfecha), x = entrada(f.id, el.dataset.acept), col = S.users[x.email].colegio;
-    if (aceptados(f.id, col).length >= f.cupos[col] && !confirm(`Ya se completaron los ${f.cupos[col]} cupos del ${CONFIG.colegios[col].nombre}. ¿Aceptar igual?`)) return;
-    x.estado = 'aceptado'; log(`${S.users[x.email].nombre} fue aceptado para el ${dLarga(f.fecha)}`); save(); render(); return toast(`${nombre1(x.email)} aceptado. Le avisamos a su apoderado`); }
-  if ((el = t.closest('[data-rech]'))) { const f = fecha(S.ui.cfecha), x = entrada(f.id, el.dataset.rech); x.estado = 'rechazado'; save(); render(); return toast(`Le avisamos a ${nombre1(x.email)} que esta vez no quedó`); }
-  if ((el = t.closest('[data-quitar]'))) { const f = fecha(S.ui.cfecha), x = entrada(f.id, el.dataset.quitar); x.estado = 'solicitud'; save(); render(); return toast('Volvió a solicitudes'); }
-  if ((el = t.closest('[data-perd]'))) { const f = fecha(S.ui.cfecha), x = entrada(f.id, el.dataset.perd); x.perdonada = !x.perdonada; log(`${x.perdonada ? 'Se perdonó' : 'Se reactivó'} la falta de ${S.users[x.email].nombre}`); save(); render(); return toast(x.perdonada ? 'Falta perdonada' : 'La falta vuelve a contar'); }
-  if ((el = t.closest('[data-perdtodo]'))) { const em = el.dataset.perdtodo; historial(em).faltas.forEach(f => { entrada(f.id, em).perdonada = true; }); log(`Se perdonaron las faltas de ${S.users[em].nombre}`); save(); render(); return toast('Faltas perdonadas'); }
-  if ((el = t.closest('[data-marca]'))) { const f = fecha(S.ui.cfecha), x = entrada(f.id, el.dataset.marca), k = S.ui.porteria;
-    if (x[k]) { if (!confirm(`¿Quitar la ${k} registrada a las ${hhmm(x[k])}?`)) return; x[k] = null; if (k === 'salida') x.regreso = null; save(); return render(); }
-    return marcar(x, f, (ok, msg) => toast(msg)); }
-  if ((el = t.closest('[data-af]'))) { S.ui.afiltro = el.dataset.af; S.ui.q = ''; save(); return render(); }
-  if ((el = t.closest('[data-delreg]'))) { const em = el.dataset.delreg; if (!confirm('¿Quitar a este apoderado del registro? El alumno no podrá pedir una autorización nueva.')) return; delete S.registro[em]; save(); render(); return toast('Quitado del registro'); }
-  if ((el = t.closest('[data-dc]'))) { const [c, n] = el.dataset.dc.split(':'); S.ajustes.cupos[c] = Math.max(0, Math.min(60, S.ajustes.cupos[c] + +n)); save(); return render(); }
-  if ((el = t.closest('[data-cod]'))) { const k = S.codigos[+el.dataset.cod]; k.activo = !k.activo; save(); render(); return toast(k.activo ? 'Código activado' : 'Código desactivado: ya nadie puede usarlo'); }
-  if ((el = t.closest('[data-newcod]'))) { const col = el.dataset.newcod, code = `CAFE-${col.toUpperCase()}-${rid(4).toUpperCase()}`; S.codigos.push({ code, colegio:col, activo:true, usos:0 }); save(); render(); return toast(`Código ${code} creado`); }
+  if ((el = t.closest('[data-ctab]'))) { ST.ctab = el.dataset.ctab; ST.cfecha = null; ST.q = ''; render(); return window.scrollTo(0, 0); }
+  if ((el = t.closest('[data-open]'))) { ST.cfecha = el.dataset.open; ST.ctab = 'fechas'; const f = fechaC(ST.cfecha); ST.dtab = el.dataset.dt || (esPasada(f) ? 'aceptados' : solsDe(f.id, 'solicitud').length ? 'solicitudes' : 'aceptados'); render(); return window.scrollTo(0, 0); }
+  if ((el = t.closest('[data-dt2]'))) { ST.dtab = el.dataset.dt2; return render(); }
+  if ((el = t.closest('[data-pmode]'))) { ST.porteria = el.dataset.pmode; return render(); }
+  if ((el = t.closest('[data-psub]'))) { ST.psub = el.dataset.psub; ST.q = ''; return render(); }
+  if ((el = t.closest('[data-acept]'))) { await q(sb.from('solicitudes').update({ estado:'aceptado' }).eq('id', el.dataset.acept)); return recargar('Aceptado'); }
+  if ((el = t.closest('[data-rech]'))) { await q(sb.from('solicitudes').update({ estado:'rechazado' }).eq('id', el.dataset.rech)); return recargar('Le avisamos que esta vez no quedó'); }
+  if ((el = t.closest('[data-quitar]'))) { await q(sb.from('solicitudes').update({ estado:'solicitud' }).eq('id', el.dataset.quitar)); return recargar('Volvió a solicitudes'); }
+  if ((el = t.closest('[data-perd]'))) { await q(sb.from('solicitudes').update({ perdonada:el.dataset.v === '1' }).eq('id', el.dataset.perd)); return recargar(el.dataset.v === '1' ? 'Falta perdonada' : 'La falta vuelve a contar'); }
+  if ((el = t.closest('[data-marca]'))) { const s = C_().sols.find(x => x.qr === el.dataset.marca); if (s && s[ST.porteria]) return toast('Ya estaba marcado'); return marcarQR(el.dataset.marca, false); }
+  if ((el = t.closest('[data-delreg]'))) { if (!confirm('¿Quitar a este apoderado del registro?')) return; await q(sb.from('registro_apoderados').delete().eq('alumno_email', el.dataset.delreg)); return recargar('Quitado'); }
+  if ((el = t.closest('[data-cod]'))) { await q(sb.from('codigos_invitacion').update({ activo:el.dataset.v === '1' }).eq('codigo', el.dataset.cod)); return recargar(); }
+  if ((el = t.closest('[data-newcod]'))) { const code = `CAFE-${el.dataset.newcod.toUpperCase()}-${rid(4).toUpperCase()}`; await q(sb.from('codigos_invitacion').insert({ codigo:code, colegio:el.dataset.newcod })); return recargar(`Código ${code} creado`); }
   if ((el = t.closest('[data-guardarf]'))) {
-    const id = el.dataset.guardarf, err = m => $('#ferr').textContent = m;
-    const fv = $('#fF').value, i2 = hm($('#fI').value), fin = hm($('#fT').value), lug = $('#fL').value.trim(), cvd = +$('#fCvd').value, cvm = +$('#fCvm').value, nota = $('#fN').value.trim();
-    if (!fv) return err('Elige el día');
-    if (!id && fromIso(fv) < hoy()) return err('La fecha ya pasó');
-    if (!i2 || !fin) return err('Escribe las horas en formato 24 horas, por ejemplo 15:30');
-    if (fin <= i2) return err('El término debe ser después del inicio');
-    if (!lug) return err('Escribe el punto de encuentro');
-    if (S.fechas.some(x => x.fecha === fv && x.id !== id)) return err('Ya existe una salida ese día');
-    if (id) { Object.assign(fecha(id), { fecha:fv, inicio:i2, fin, lugar:lug, cupos:{ vd:cvd, vm:cvm }, nota }); log(`Se editó el ${dLarga(fv)}`); }
-    else { const f = nuevaFecha(fv, { inicio:i2, fin, lugar:lug, cupos:{ vd:cvd, vm:cvm }, nota }); S.fechas.push(f); S.ui.cfecha = f.id; S.ui.dtab = 'solicitudes'; log(`Se creó la salida del ${dLarga(fv)}`); }
-    save(); closeSheet(); render(); return toast(id ? 'Cambios guardados' : 'Fecha creada y publicada');
+    const id = el.dataset.guardarf, err = m => $('#ferr').textContent = m, dia = $('#fF').value, i2 = hm($('#fI').value), fin = hm($('#fT').value), lug = $('#fL').value.trim();
+    if (!dia) return err('Elige el día'); if (!i2 || !fin || fin <= i2) return err('Revisa el horario en formato 24 horas, por ejemplo 15:30'); if (!lug) return err('Escribe el punto de encuentro');
+    const row = { dia, inicio:i2, fin, lugar:lug, cupos_vd:+$('#fCvd').value, cupos_vm:+$('#fCvm').value, nota:$('#fN').value.trim() || null };
+    try { if (id) await q(sb.from('fechas').update(row).eq('id', id)); else { const n = await q(sb.from('fechas').insert(row).select().single()); ST.cfecha = n.id; ST.dtab = 'solicitudes'; await logC(`Se creó la salida del ${dLarga(dia)}`); } }
+    catch (x) { return err(/duplicate|unique/i.test(x.message) ? 'Ya existe una salida ese día' : msgError(x)); }
+    closeSheet(); return recargar(id ? 'Cambios guardados' : 'Fecha creada');
   }
-  if ((el = t.closest('[data-cancelok]'))) {
-    const f = fecha(el.dataset.cancelok), m = $('#cM').value.trim(); if (!m) return $('#cerr2').textContent = 'Escribe el motivo para los alumnos';
-    f.estado = 'cancelada'; f.motivo = m; (S.avisos[f.id] = S.avisos[f.id] || []).push({ t:'Esta vez no hay café: ' + m, de:coordYo().nombre, ts:Date.now() });
-    log(`Se canceló el ${dLarga(f.fecha)}`); save(); closeSheet(); render(); return toast(`Avisamos a ${lista(f.id).length} personas`);
-  }
-});
-document.addEventListener('input', e => { if (e.target.id === 'aq') { S.ui.q = e.target.value; const pos = e.target.selectionStart; render(); const q = $('#aq'); if (q) { q.focus(); q.setSelectionRange(pos, pos); } } });
+  if ((el = t.closest('[data-cancelok]'))) { const m = $('#cM').value.trim(); if (!m) return $('#cerr2').textContent = 'Escribe el motivo';
+    await q(sb.from('fechas').update({ estado:'cancelada', motivo:m }).eq('id', el.dataset.cancelok)); await q(sb.from('avisos').insert({ fecha_id:el.dataset.cancelok, texto:'Esta vez no hay café: ' + m, autor:'Coordinación' })); closeSheet(); return recargar('Salida cancelada'); }
+}));
+document.addEventListener('input', e => { if (e.target.id === 'aq') { ST.q = e.target.value; const p = e.target.selectionStart; render(); const x = $('#aq'); if (x) { x.focus(); x.setSelectionRange(p, p); } } });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !sesionViva()) render(); });
+document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && ST.rol && await sesionVencida()) { Object.assign(ST, { rol:null, alumno:null, c:null }); L.paso = 'inicio'; render(); } });
 addEventListener('resize', syncSegs);
-addEventListener('hashchange', () => { A = { paso:'rut' }; render(); });
-document.fonts && document.fonts.ready.then(syncSegs);
-render();
+
+/* ---------- arranque ---------- */
+(async () => {
+  if (location.hash === '#coord') setModo('coord');
+  if (location.hash === '#apoderado') setModo('apoderado');
+  if (await sesionVencida()) return render();
+  const { data:{ session } } = await sb.auth.getSession();
+  if (session) await cargarRol(); else { L.paso = (location.hash === '#coord' || location.hash === '#apoderado') ? 'correo' : 'inicio'; render(); }
+})();
 </script>
 </body>
 </html>
