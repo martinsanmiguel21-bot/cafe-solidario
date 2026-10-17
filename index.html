@@ -339,7 +339,8 @@ details.how p{margin-top:10px;line-height:1.55}
 const CONFIG = {
   supabaseUrl: 'https://nconhqyzfcetpxvycibz.supabase.co',
   supabaseKey: 'sb_publishable_NwPvBjFEq_p9ae2brcwSKA_ez4UGZIz',   // clave pública (publishable). Nunca pongas aquí la secret.
-  sesionMin: 60,                       // la sesión dura mientras la app esté abierta, máximo 60 minutos
+  otpLen: 6,                           // largo del código: debe ser igual a 'Email OTP Length' en Supabase
+  sesionDias: 30,                      // días que el celular queda recordado antes de pedir código otra vez
   colegios: { vd:{ nombre:'Verbo Divino' }, vm:{ nombre:'Villa María' } },
   autorizacion: {
     vd: ['Autorizo a mi hijo o hija a participar en Café Solidario, actividad organizada por el Centro de Alumnos del Colegio del Verbo Divino junto al Colegio Villa María.', 'Las salidas son los días publicados por la coordinación, con salida y regreso desde el punto de encuentro indicado en cada fecha y con acompañamiento de adultos responsables.', 'Esta autorización vale para todas las fechas hasta el 31 de diciembre y puedo revocarla en cualquier momento.'],
@@ -394,7 +395,7 @@ const tapaTel = t => String(t).replace(/(\+?\d{2,3})\d+(\d{3})$/, '$1 •••�
 
 /* ---------- conexión ---------- */
 const sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey, {
-  auth:{ storage:window.sessionStorage, persistSession:true, autoRefreshToken:true, detectSessionInUrl:false },
+  auth:{ storage:window.localStorage, persistSession:true, autoRefreshToken:true, detectSessionInUrl:false },
 });
 const hhmm = ts => { const d = new Date(ts); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
 const t5 = t => String(t || '').slice(0, 5);
@@ -412,16 +413,16 @@ async function rpc(fn, args){ return q(sb.rpc(fn, args || {})); }
 
 /* ---------- estado ---------- */
 const ST = { email:null, rol:null, alumno:null, aut:null, fechas:[], cupos:{}, mis:[], avisos:[], ajustes:null, apo:[], c:null, tab:'inicio', ctab:'resumen', cfecha:null, dtab:'solicitudes', porteria:'salida', filtro:'todos', psub:'alumnos', q:'' };
-let L = { modo:sessionStorage.getItem('cs-modo') || 'alumno', paso:'inicio', email:'', inv:'', ocupado:false };
-const setModo = m => { L.modo = m; sessionStorage.setItem('cs-modo', m); };
+let L = { modo:localStorage.getItem('cs-modo') || 'alumno', paso:'inicio', email:'', inv:'', ocupado:false };
+const setModo = m => { L.modo = m; localStorage.setItem('cs-modo', m); };
 
-/* ---------- sesión: máximo 60 minutos y se borra al cerrar la app ---------- */
+/* ---------- sesión: el celular queda recordado por 30 días ---------- */
 async function sesionVencida(){
-  const t = +sessionStorage.getItem('cs-login') || 0;
-  if (t && Date.now() - t > CONFIG.sesionMin * 6e4) { await sb.auth.signOut(); sessionStorage.removeItem('cs-login'); toast('Tu sesión expiró. Entra de nuevo con un código'); return true; }
+  const t = +localStorage.getItem('cs-login') || 0;
+  if (t && Date.now() - t > CONFIG.sesionDias * 864e5) { await sb.auth.signOut(); localStorage.removeItem('cs-login'); toast('Tu sesión expiró. Entra de nuevo con un código'); return true; }
   return false;
 }
-async function salir(){ await sb.auth.signOut(); sessionStorage.removeItem('cs-login'); Object.assign(ST, { email:null, rol:null, alumno:null, aut:null, c:null, apo:[] }); L.paso = 'inicio'; render(); }
+async function salir(){ await sb.auth.signOut(); localStorage.removeItem('cs-login'); localStorage.removeItem('cs-modo'); Object.assign(ST, { email:null, rol:null, alumno:null, aut:null, c:null, apo:[] }); L.paso = 'inicio'; render(); }
 
 /* =========================================================
    INGRESO (alumno, apoderado o coordinación)
@@ -449,15 +450,15 @@ function vIngreso(){
     <button class="btn pri block" id="lgo" ${L.ocupado ? 'disabled' : ''}>${L.ocupado ? 'Enviando…' : 'Enviar código'}</button>
     ${L.modo === 'alumno' ? `<p class="hint" style="text-align:center;margin-top:12px">¿No tienes correo del colegio? <button class="lk" id="linvbtn">Tengo un código de invitación</button></p>` : ''}`;
   else body = `
-    <p class="muted small">Mandamos un código de 6 dígitos a <b style="color:var(--ink)">${esc(L.email)}</b>. Revisa también la carpeta de spam.</p>
-    <input class="otp" id="lotp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="······" aria-label="Código de 6 dígitos" style="margin-top:16px">
+    <p class="muted small">Mandamos un código de ${CONFIG.otpLen} dígitos a <b style="color:var(--ink)">${esc(L.email)}</b>. Revisa también la carpeta de spam.</p>
+    <input class="otp" id="lotp" inputmode="numeric" autocomplete="one-time-code" maxlength="${CONFIG.otpLen}" placeholder="${'·'.repeat(CONFIG.otpLen)}" aria-label="Código" style="margin-top:16px">
     <div class="err" id="lerr"></div>
     <button class="btn pri block" id="lok" ${L.ocupado ? 'disabled' : ''}>${L.ocupado ? 'Verificando…' : 'Verificar'}</button>
     <div class="btns" style="justify-content:space-between;margin-top:12px"><button class="lk small" id="lback">Cambiar correo</button><button class="lk small" id="lre">Reenviar código</button></div>`;
   return `<div class="shell view">${topBar()}
     <button class="back" data-act="volverinicio">${ic('back','s')}Volver</button>
     <div class="card pad20"><h2>${titulos[L.modo]}</h2><p class="muted small" style="margin:6px 0 16px">${sub[L.modo]}</p>${body}
-      <div class="secure">${ic('shield','s')}<span>Cada vez que abres la app te pedimos un código nuevo. Así nadie puede entrar con tu correo.</span></div></div></div>`;
+      <div class="secure">${ic('shield','s')}<span>No hay contraseñas: el código solo te lo pedimos la primera vez en cada celular. Después quedas dentro por 30 días.</span></div></div></div>`;
 }
 function bindIngreso(){
   const err = m => { const e = $('#lerr'); if (e) e.textContent = m || ''; };
@@ -479,15 +480,16 @@ function bindIngreso(){
   }
   if ($('#lok')) {
     const ok = async () => {
-      const t = $('#lotp').value.replace(/\D/g, ''); if (t.length !== 6) return err('El código tiene 6 dígitos');
+      if (L.ocupado) return;
+      const t = $('#lotp').value.replace(/\D/g, ''); if (t.length !== CONFIG.otpLen) return err(`El código tiene ${CONFIG.otpLen} dígitos`);
       L.ocupado = true; $('#lok').disabled = true;
       const { error } = await sb.auth.verifyOtp({ email:L.email, token:t, type:'email' });
       L.ocupado = false;
       if (error) { $('#lok').disabled = false; return err(msgError(error)); }
-      sessionStorage.setItem('cs-login', String(Date.now()));
+      localStorage.setItem('cs-login', String(Date.now()));
       await cargarRol();
     };
-    $('#lok').onclick = ok; $('#lotp').oninput = ev => { if (ev.target.value.replace(/\D/g,'').length === 6) ok(); }; $('#lotp').focus();
+    $('#lok').onclick = ok; $('#lotp').oninput = ev => { if (ev.target.value.replace(/\D/g,'').length === CONFIG.otpLen) ok(); }; $('#lotp').focus();
     $('#lback').onclick = () => { L.paso = 'correo'; render(); };
     $('#lre').onclick = async () => {
       if (Date.now() < (L.reenvio || 0)) return err(`Espera ${Math.ceil((L.reenvio - Date.now()) / 1000)} s para pedir otro`);
@@ -645,7 +647,7 @@ function vAlumno(){
       <details class="card pad16 how" style="margin-top:12px"><summary><b>¿Cómo funciona la prioridad?</b></summary>
         <p class="muted small">Cuando hay más interesados que cupos, se acepta primero a quienes han ido menos veces. Si te aceptan y no vas sin avisar, cuenta como falta. Con ${ST.ajustes.faltas_para_bajar || 2} faltas en 60 días, tu prioridad baja por ${ST.ajustes.dias_prioridad_baja || 30} días. Puedes bajarte sin falta hasta las ${t5(ST.ajustes.baja_sin_falta) || '12:00'} del mismo día.</p></details>
       <div class="sec"><h2>Cuenta</h2></div>
-      <div class="rows"><div class="r"><div class="ri">${ic('mail','s')}</div><div class="rt"><b>${esc(u.email)}</b><small>La sesión se cierra sola al salir de la app</small></div></div>
+      <div class="rows"><div class="r"><div class="ri">${ic('mail','s')}</div><div class="rt"><b>${esc(u.email)}</b><small>Este celular queda recordado por 30 días</small></div></div>
         <button class="r" data-act="salir"><div class="ri red">${ic('out','s')}</div><div class="rt"><b>Cerrar sesión ahora</b><small>Para volver a entrar necesitarás un código</small></div></button></div>`;
   }
   return `<div class="shell view">${topBar('', `<button class="avatar av ${u.colegio}" data-tab="perfil" aria-label="Mi perfil">${ini(u.nombre)}</button>`)}${body}</div>
