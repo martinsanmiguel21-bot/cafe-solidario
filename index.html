@@ -326,6 +326,23 @@ a.btn{text-decoration:none}
 .pass-dest span{font-size:12.5px;font-weight:700;color:var(--yink);letter-spacing:.04em}
 .pass-dest b{font-family:var(--display);font-size:20px}
 .pass-dest small{color:var(--ink2)}
+.pasos{list-style:none;margin:16px 0 4px;padding:0;display:grid;gap:4px}
+.pasos li{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.pasos li:first-child{border-top:0}
+.pasos .num{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:800;font-size:14px;background:var(--sunk);color:var(--ink3)}
+.pasos li.now .num{background:var(--y);color:#2B2200}
+.pasos li.done .num{background:var(--green2);color:#fff}
+.pasos li.no .num{background:var(--redsoft);color:var(--red)}
+.pasos li b{display:block;font-size:15.5px}
+.pasos li small{display:block;color:var(--ink2);font-size:13.5px;margin:2px 0 0}
+.pasos li .btn{margin-top:8px}
+.pasos li.wait b{color:var(--ink3)}
+.nextcard h2{font-size:24px}
+.dtabs{overflow-x:auto;scrollbar-width:none}.dtabs::-webkit-scrollbar{display:none}.dtabs button{white-space:nowrap;flex:none}
+.mates{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.mates span{width:100%;font-size:12.5px;font-weight:700;color:var(--yink);letter-spacing:.04em}
+.mates i{font-style:normal;font-size:13px;font-weight:600;padding:4px 10px;border-radius:10px;background:var(--surface)}
+.mates i.vd{color:var(--vdink)}.mates i.vm{color:var(--vmink)}
 .authbtn{flex:none;min-width:96px;height:40px;border-radius:12px;padding:0 12px;font-weight:700;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--redsoft);color:var(--red);transition:background .2s,color .2s}
 .authbtn.on{background:var(--green2);color:#fff}
 .ghead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;background:var(--crema);color:var(--cink)}
@@ -358,6 +375,7 @@ const CONFIG = {
   supabaseKey: 'sb_publishable_NwPvBjFEq_p9ae2brcwSKA_ez4UGZIz',   // clave pública (publishable). Nunca pongas aquí la secret.
   pdfAutorizacion: 'autorizacion.pdf',  // sube el PDF de la autorización a GitHub con este nombre
   oracion: ['Señor, hoy nos encomendamos a ti', 'para que, a través de este acto de servicio,', 'podamos reflejar', 'el respeto, amor y dignidad que Jesús nos enseñó.', 'Que cada vaso de café', 'y cada palabra compartida', 'alimenten no solo el cuerpo,', 'sino también el espíritu y el alma', 'de quienes están en situación de vulnerabilidad.', 'Ayúdanos a construir lazos,', 'ofrecer esperanza', 'y demostrar tu amor incondicional,', 'proporcionando momentos de calidez', 'y conexión humana.', 'Amén.'],
+  firmaCertificado: 'Encargada del Proyecto Social Café Solidario',   // cargo que firma el certificado
   otpLen: 6,                           // largo del código: debe ser igual a 'Email OTP Length' en Supabase
   sesionDias: 30,                      // días que el celular queda recordado antes de pedir código otra vez
   colegios: { vd:{ nombre:'Verbo Divino' }, vm:{ nombre:'Villa María' } },
@@ -461,7 +479,7 @@ function vIngreso(){
     <div class="land">
       <button class="r" data-modo="alumno"><div class="ri cof">${ic('user')}</div><div class="rt"><b>Soy alumno o alumna</b><small>Pide unirte a las salidas y ve tu pase</small></div>${ic('cr','s chev')}</button>
       <button class="r" data-modo="coord"><div class="ri">${ic('shield')}</div><div class="rt"><b>Soy jefe o coordinación</b><small>Acepta solicitudes, arma los grupos y marca autorizaciones</small></div>${ic('cr','s chev')}</button>
-    </div><p class="foot" style="margin-top:6px;font-size:11.5px">Versión 5</p></div>`;
+    </div><p class="foot" style="margin-top:6px;font-size:11.5px">Versión 7</p></div>`;
   if (L.paso === 'correo') body = `
     <label class="field"><span>Correo</span><input id="lmail" type="email" inputmode="email" autocomplete="email" value="${esc(L.email)}" placeholder="nombre@colegio.cl"></label>
     <div class="err" id="lerr"></div>
@@ -558,7 +576,9 @@ async function cargarAlumno(){
     q(sb.from('ajustes').select('*').eq('id', 1).maybeSingle()),
     q(sb.from('destinos').select('*').order('orden')),
   ]);
-  ST.destinos = destinos; ST.fechas = fechas; ST.mis = mis; ST.aut = aut; ST.avisos = avisos; ST.ajustes = aj || {};
+  ST.destinos = destinos; ST.fechas = fechas; ST.grupo = {};
+  const prox = mis.filter(s => s.estado === 'aceptado' && s.destino_id && fechas.some(f => f.id === s.fecha_id && fromIso(f.dia) >= hoy()));
+  await Promise.all(prox.map(async s => { try { ST.grupo[s.fecha_id] = await rpc('mi_grupo', { p_fecha:s.fecha_id }); } catch (e) {} })); ST.mis = mis; ST.aut = aut; ST.avisos = avisos; ST.ajustes = aj || {};
   ST.cupos = {}; cupos.forEach(c => { (ST.cupos[c.fecha_id] = ST.cupos[c.fecha_id] || {})[c.colegio] = c; });
 }
 const esPasada = f => fromIso(f.dia) < hoy();
@@ -599,6 +619,17 @@ function bannerAut(){
     <p>Descárgala, imprímela, que tu apoderado la firme y entrégasela a tu jefe. Él la marca en la app y listo: vale todo el semestre.</p>
     <div class="btns"><a class="btn sm yel" href="${CONFIG.pdfAutorizacion}" target="_blank" rel="noopener" download>${ic('dl','s')}Descargar autorización</a></div></div></div>`;
 }
+function pasos(f, sp){
+  const ok = vigenteA(), est = sp ? sp.estado : null;
+  const paso = (n, estado, titulo, texto, accion) => `<li class="${estado}"><span class="num">${estado === 'done' ? ic('check','s') : n}</span><div><b>${titulo}</b><small>${texto}</small>${accion || ''}</div></li>`;
+  return `<div class="card pad20 nextcard"><span class="muted small">Próxima salida</span><h2 style="margin-top:4px">${cap(dLarga(f.dia))}</h2>
+    <p class="meta" style="margin-top:4px">${ic('clock','s')}Salida ${t5(f.inicio)}, regreso ${t5(f.fin)}</p>
+    <ol class="pasos">
+      ${paso(1, ok ? 'done' : 'now', 'Autorización firmada', ok ? 'Tu jefe ya la recibió. Vale todo el semestre.' : 'Imprímela, que la firme tu apoderado y entrégasela a tu jefe.', ok ? '' : `<a class="btn sm yel" href="${CONFIG.pdfAutorizacion}" target="_blank" rel="noopener" download>${ic('dl','s')}Descargar</a>`)}
+      ${paso(2, est ? 'done' : (f.estado === 'abierta' ? 'now' : 'wait'), 'Pedir unirte', est ? 'Ya enviaste tu solicitud.' : f.estado === 'abierta' ? 'Avísale a los jefes que quieres ir.' : 'Las solicitudes para esta fecha están cerradas.', !est && f.estado === 'abierta' ? `<button class="btn sm pri" data-fecha="${f.id}">${ic('cup','s')}Pedir unirme</button>` : '')}
+      ${paso(3, est === 'aceptado' ? 'done' : est === 'rechazado' ? 'no' : est ? 'now' : 'wait', 'Confirmación de los jefes', est === 'aceptado' ? 'Quedaste. Tu pase está abajo.' : est === 'rechazado' ? 'Esta vez no quedaste. Tendrás más prioridad la próxima.' : est ? 'Están revisando los cupos. Te aparece aquí cuando confirmen.' : 'Después de pedir unirte, los jefes confirman los cupos.')}
+    </ol>${est ? `<button class="lk small" data-fecha="${f.id}" style="margin-top:4px">Ver detalles de la salida</button>` : ''}</div>`;
+}
 function oracionHTML(){ return `<div class="prayer"><h2>Oración Café Solidario</h2>${CONFIG.oracion.map(l => `<p>${esc(l)}</p>`).join('')}</div>`; }
 const destinoDe = s => s && s.destino_id && (ST.destinos || (ST.c && ST.c.destinos) || []).find(d => d.id === s.destino_id);
 function tagFecha(f, s){
@@ -626,7 +657,9 @@ function pase(f, s){
   return `<div class="pass"><div class="pass-top"><span class="k">Tu pase</span><h2>${cap(dLarga(f.dia))}</h2>
       <div class="m"><span>${ic('clock','s')}${t5(f.inicio)} a ${t5(f.fin)}</span><span>${ic('map','s')}${esc(f.lugar)}</span></div></div>
     <div class="pass-cut" aria-hidden="true"></div>
-    ${destinoDe(s) ? `<div class="pass-dest"><span>Tu grupo</span><b>${esc(destinoDe(s).nombre)}</b><small>Jefe: ${esc(destinoDe(s).jefes || 'por confirmar')}</small></div>` : ''}
+    ${destinoDe(s) ? `<div class="pass-dest"><span>Tu grupo</span><b>${esc(destinoDe(s).nombre)}</b><small>Jefe: ${esc(destinoDe(s).jefes || 'por confirmar')}</small>
+      ${(ST.grupo && ST.grupo[f.id] || []).filter(g => !g.es_yo).length ? `<div class="mates"><span>Van contigo</span>${ST.grupo[f.id].filter(g => !g.es_yo).map(g => `<i class="${g.colegio}" title="${esc(g.curso)}">${esc(g.nombre)}</i>`).join('')}</div>` : ''}</div>`
+      : s.estado === 'aceptado' ? `<div class="pass-dest"><span>Tu grupo</span><small>Los jefes todavía están armando los grupos. Aquí verás tu destino y con quién vas.</small></div>` : ''}
     <div class="pass-bot"><div class="qr" aria-label="Código QR para mostrar en portería">${qrSVG('CS1:' + s.qr)}</div>
       <div><p class="small muted">Muéstralo en portería al salir y al volver.</p>
         <ol class="track">${['Aceptado','Salida','Regreso'].map((t, k) => `<li class="${k < paso ? 'on' : ''}"><i></i>${t}${k === 1 && s.salida ? ` <span class="muted">${hhmm(s.salida)}</span>` : ''}${k === 2 && s.regreso ? ` <span class="muted">${hhmm(s.regreso)}</span>` : ''}</li>`).join('')}</ol></div></div></div>`;
@@ -642,16 +675,15 @@ function vAlumno(){
     const hr = new Date().getHours(), saludo = hr < 12 ? 'Buenos días' : hr < 20 ? 'Buenas tardes' : 'Buenas noches';
     const pend = fut.filter(f => { const s = miSol(f.id); return s && s.estado === 'solicitud'; });
     const misIds = new Set(ST.mis.map(s => s.fecha_id)), avisos = ST.avisos.filter(a => misIds.has(a.fecha_id)).slice(0, 3);
+    const sp = prox ? miSol(prox.id) : null;
     body = `<p class="muted">${saludo},</p><h1 style="margin-top:2px">${esc(u.nombre.split(' ')[0])}</h1>
-      <div class="stack" style="margin-top:18px">${bannerAut()}${baja}
-      ${mio ? pase(mio.f, mio.s) : prox ? `<div class="card pad20"><span class="muted small">Próxima salida</span><h2 style="margin-top:4px">${cap(dLarga(prox.dia))}</h2>
-          <p class="meta" style="margin-top:6px">${ic('clock','s')}${t5(prox.inicio)} a ${t5(prox.fin)}</p>
-          <div class="btns" style="margin-top:14px"><button class="btn pri" data-fecha="${prox.id}">${ic('cup','s')}Ver y pedir unirme</button><button class="btn soft" data-tab="fechas">Todas las fechas</button></div></div>`
-        : `<div class="card empty">${ic('cal')}La coordinación todavía no publica nuevas fechas.</div>`}
-      ${mio ? `<button class="card banner" data-act="oracion" style="width:100%;text-align:left"><div class="ri cof">${ic('heart')}</div><div><h3>Oración antes de salir</h3><p>La rezamos todos juntos en portería.</p></div></button>` : ''}
-      ${pend.map(f => `<button class="card banner" data-fecha="${f.id}" style="width:100%;text-align:left"><div class="ri y">${ic('inbox')}</div><div><h3>Solicitud enviada para el ${dLarga(f.dia)}</h3><p>La coordinación confirma los cupos antes de la salida.</p></div></button>`).join('')}
-      ${fut.filter(f => f.estado === 'cancelada').slice(0, 1).map(f => `<div class="aviso cancel"><b>No hay café el ${dLarga(f.dia)}</b><p>${esc(f.motivo || '')}</p></div>`).join('')}
-      ${avisos.map(a => `<div class="aviso"><b>${esc(a.autor)} · ${hace(new Date(a.creado).getTime())}</b><p>${esc(a.texto)}</p></div>`).join('')}</div>`;
+      <div class="stack" style="margin-top:18px">
+      ${fut.filter(f => f.estado === 'cancelada' && (!prox || f.dia < prox.dia)).slice(0, 1).map(f => `<div class="aviso cancel"><b>No hay café el ${dLarga(f.dia)}</b><p>${esc(f.motivo || '')}</p></div>`).join('')}
+      ${prox ? pasos(prox, sp) : `<div class="card empty">${ic('cal')}Los jefes todavía no publican la próxima salida.</div>`}
+      ${mio ? pase(mio.f, mio.s) + `<button class="card r" data-act="oracion" style="border-radius:18px"><div class="ri cof">${ic('heart','s')}</div><div class="rt"><b>Oración antes de salir</b><small>La rezamos todos juntos en portería</small></div>${ic('cr','s chev')}</button>` : ''}
+      ${baja}
+      ${avisos.map(a => `<div class="aviso"><b>${esc(a.autor)} · ${hace(new Date(a.creado).getTime())}</b><p>${esc(a.texto)}</p></div>`).join('')}
+      ${fut.length > 1 ? `<button class="btn soft block" data-tab="fechas">${ic('cal','s')}Ver todas las fechas</button>` : ''}</div>`;
   } else if (tab === 'fechas') {
     let last = '', html = '';
     fut.forEach(f => { const m = cap(MES[fromIso(f.dia).getMonth()]); if (m !== last) { html += `<div class="month">${m}</div>`; last = m; } html += filaFechaA(f); });
@@ -664,6 +696,7 @@ function vAlumno(){
       <div class="sec"><h2>Autorización</h2></div>
       ${vigenteA() ? `<div class="card pad16"><span class="stamp">${ic('check','s')}Autorización entregada</span>
           <p class="meta" style="margin-top:12px">Tu jefe recibió la autorización firmada${u.autorizado_en ? ` el ${new Date(u.autorizado_en).getDate()} de ${MES[new Date(u.autorizado_en).getMonth()]}` : ''}.</p></div>` : bannerAut()}
+      <button class="card r" data-act="certificado" style="margin-top:10px;border-radius:18px"><div class="ri">${ic('dl','s')}</div><div class="rt"><b>Certificado de horas</b><small>Descárgalo con tus salidas y horas de voluntariado</small></div>${ic('cr','s chev')}</button>
       <button class="card r" data-act="oracion" style="margin-top:10px;border-radius:18px"><div class="ri cof">${ic('heart','s')}</div><div class="rt"><b>Oración Café Solidario</b><small>La que rezamos antes de salir</small></div>${ic('cr','s chev')}</button>
       <div class="sec"><h2>Tu voluntariado</h2></div>
       <div class="statrow"><div class="stat"><span class="big">${h.veces}</span><small>${h.veces === 1 ? 'salida' : 'salidas'}</small></div>
@@ -841,10 +874,19 @@ function vCoord(){
   if (ST.cfecha && fechaC(ST.cfecha)) body = vFechaC(fechaC(ST.cfecha));
   else if (t === 'resumen') {
     const f = fut.find(x => x.estado !== 'cancelada');
-    body = `<div class="cgrid two"><div>${f ? `<div class="next"><span class="k">Próxima salida</span><h2>${cap(dLarga(f.dia))}</h2>
-        <div class="m"><span>${solsDe(f.id, 'aceptado').length} de ${f.cupos_vd + f.cupos_vm} aceptados</span><span>${solsDe(f.id, 'solicitud').length} solicitudes</span></div>
-        <div class="acts"><button class="btn sm yel" data-open="${f.id}" data-dt="solicitudes">Revisar solicitudes</button><button class="btn sm soft" data-open="${f.id}" data-dt="porteria">${ic('scan','s')}Portería</button></div></div>`
-      : `<div class="card empty">${ic('cal')}No hay salidas próximas. Crea una en Fechas.</div>`}
+    let tareas = '';
+    if (f) {
+      const sol = solsDe(f.id, 'solicitud').length, ac = solsDe(f.id, 'aceptado'), sinG = ac.filter(x => !c.destinos.some(d => d.id === x.destino_id)).length, sinA = ac.filter(x => !vigC(x.alumno_id)).length;
+      const t = (estado, titulo, texto, btn) => `<li class="${estado}"><span class="num">${estado === 'done' ? ic('check','s') : '!'}</span><div><b>${titulo}</b><small>${texto}</small>${btn || ''}</div></li>`;
+      tareas = `<ol class="pasos">
+        ${t(sol ? 'now' : 'done', 'Solicitudes', sol ? `${sol} por revisar. Hay ${f.cupos_vd + f.cupos_vm - ac.length} cupos libres.` : `Todo revisado. ${ac.length} aceptados.`, sol ? `<button class="btn sm pri" data-open="${f.id}" data-dt="solicitudes">Revisar</button>` : '')}
+        ${t(!ac.length ? 'wait' : sinG ? 'now' : 'done', 'Grupos', !ac.length ? 'Primero acepta a los voluntarios.' : sinG ? `${sinG} sin grupo.` : 'Todos tienen grupo.', ac.length ? `<button class="btn sm ${sinG ? 'pri' : 'soft'}" data-open="${f.id}" data-dt="grupos">${sinG ? 'Armar grupos' : 'Ver grupos'}</button>` : '')}
+        ${t(sinA ? 'now' : 'done', 'Autorizaciones', sinA ? `${sinA} aceptados no han entregado la autorización firmada.` : 'Todos los aceptados la entregaron.', sinA ? `<button class="btn sm soft" data-ctab="personas" data-sin="1">Ver quiénes</button>` : '')}
+        ${t('wait', 'El día de la salida', 'Imprime la hoja y marca la salida y el regreso en portería.', `<div class="btns" style="margin-top:8px"><button class="btn sm soft" data-open="${f.id}" data-dt="porteria">${ic('scan','s')}Portería</button><button class="btn sm soft" data-impr="${f.id}">${ic('dl','s')}Imprimir hoja</button></div>`)}
+      </ol>`;
+    }
+    body = `<div class="cgrid two"><div>${f ? `<div class="card pad20 nextcard"><span class="muted small">Próxima salida</span><h2 style="margin-top:4px">${cap(dLarga(f.dia))}</h2><p class="meta" style="margin-top:4px">${ic('clock','s')}Salida ${t5(f.inicio)}, regreso ${t5(f.fin)}</p>${tareas}</div>`
+      : `<div class="card empty">${ic('cal')}No hay salidas próximas. <button class="lk" data-act="nueva">Crear una fecha</button></div>`}
       <div class="statrow" style="margin-top:12px"><div class="stat"><span class="big">${c.alumnos.length}</span><small>alumnos</small></div><div class="stat"><span class="big">${c.alumnos.filter(a => a.autorizado).length}</span><small>con autorización</small></div><div class="stat" style="${c.alumnos.some(a => !a.autorizado) ? 'background:var(--ysoft)' : ''}"><span class="big">${c.alumnos.filter(a => !a.autorizado).length}</span><small>sin autorización</small></div></div></div>
       <div><div class="sec" style="margin-top:0"><h2>Actividad</h2><button class="lk" data-act="recargar">Actualizar</button></div><div class="rows feed">${c.actividad.map(a => `<div class="r"><div class="rt"><b style="font-weight:500;font-size:14.5px">${esc(a.texto)}</b><small>${hace(new Date(a.creado).getTime())}</small></div></div>`).join('') || '<div class="empty">Sin actividad todavía.</div>'}</div></div></div>`;
   } else if (t === 'fechas') {
@@ -887,7 +929,7 @@ function vFechaC(f){
       <div class="rows">${L3.map(s => persona(f, s, 'sol', sug.has(s.id))).join('') || `<div class="empty">${ic('inbox')}No hay solicitudes por revisar.</div>`}</div>`;
   } else if (dt === 'grupos') {
     const ac = solsDe(f.id, 'aceptado'), dests = C_().destinos, sel = s => `<select class="dsel" data-dest="${s.id}" aria-label="Destino">${['<option value="">Sin grupo</option>'].concat(dests.map(d => `<option value="${d.id}" ${s.destino_id === d.id ? 'selected' : ''}>${esc(d.nombre)}</option>`)).join('')}</select>`;
-    const fila = s => { const u = C_().al[s.alumno_id] || {}; return `<div class="person"><div class="avatar av ${u.colegio}">${ini(u.nombre || '?')}</div><div class="pt"><b>${esc(u.nombre)}</b><small><span class="tag ${u.colegio}">${nomCol(u.colegio)}</span>${esc(u.curso)}${vigC(s.alumno_id) ? '' : ' <span class="tag no">Sin autorización</span>'}</small></div>${sel(s)}</div>`; };
+    const fila = s => { const u = C_().al[s.alumno_id] || {}; return `<div class="person"><div class="avatar av ${u.colegio}">${ini(u.nombre || '?')}</div><div class="pt"><b>${esc(u.nombre)}</b><small><span class="tag ${u.colegio}">${nomCol(u.colegio)}</span>${esc(u.curso)}${vigC(s.alumno_id) ? '' : ' <span class="tag no">Sin autorización</span>'}</small><small><button class="lk small" data-quitar="${s.id}">Quitar de aceptados</button></small></div>${sel(s)}</div>`; };
     const sinG = ac.filter(s => !dests.some(d => d.id === s.destino_id));
     panel = `<div class="btns" style="margin-bottom:12px"><button class="btn yel" data-act="repartir">${ic('users','s')}Repartir automático</button><button class="btn soft" data-act="copiargrupos">${ic('copy','s')}Copiar para WhatsApp</button></div>
       <div class="cgrid">${dests.map(d => { const L4 = ac.filter(s => s.destino_id === d.id); return `<div class="card" style="overflow:hidden"><div class="ghead"><div><b>${esc(d.nombre)}</b><small>Jefe: ${esc(d.jefes || 'sin asignar')}</small></div><span class="tag cof">${L4.length}</span></div>${L4.map(fila).join('') || '<div class="empty small">Nadie asignado.</div>'}</div>`; }).join('')}
@@ -903,14 +945,24 @@ function vFechaC(f){
       <div class="sec" style="margin-top:16px"><h2>Marcar a mano</h2></div>
       <div class="rows">${(ST.porteria === 'regreso' ? ac.filter(s => s.salida) : ac).map(s => persona(f, s, 'port')).join('') || '<div class="empty">Nadie por marcar.</div>'}</div>`;
   }
+  const tabsF = past ? [['aceptados','Asistencia']] : [['solicitudes',`1. Solicitudes${nS ? ` <span class="n">${nS}</span>` : ''}`],['grupos',`2. Grupos ${nA}`],['porteria','3. Portería']];
   return `<button class="back" data-act="volver">${ic('back','s')}Todas las fechas</button>
     <div class="card pad20"><div class="dhead"><div class="dt"><b>${d.getDate()}</b><small>${MESC[d.getMonth()]}</small></div>
-      <div style="min-width:0;flex:1"><h2>${cap(dLarga(f.dia))}</h2><p class="meta">${ic('clock','s')}${t5(f.inicio)} a ${t5(f.fin)}</p><p class="meta">${ic('map','s')}${esc(f.lugar)}</p><div style="margin-top:8px">${estadoTag(f)}</div></div></div>
-      ${f.estado === 'cancelada' ? `<div class="aviso cancel" style="margin-top:12px"><b>Motivo</b><p>${esc(f.motivo || '')}</p></div>` : ''}
-      <div class="btns" style="margin-top:14px"><button class="btn sm soft" data-act="editar">${ic('edit','s')}Editar</button>
-        ${past ? '' : f.estado === 'cancelada' ? `<button class="btn sm soft" data-act="reactivar">Reactivar</button>` : `<button class="btn sm soft" data-act="cerrar">${f.estado === 'cerrada' ? 'Reabrir' : 'Cerrar solicitudes'}</button><button class="btn sm soft" data-act="avisoh">${ic('send','s')}Aviso</button><button class="btn sm danger" data-act="cancelar">${ic('ban','s')}No hay café</button>`}
-        <button class="btn sm danger" data-act="eliminar">${ic('trash','s')}Eliminar</button><button class="btn sm soft" data-act="copiar">${ic('copy','s')}Copiar lista</button></div></div>
-    ${f.estado === 'cancelada' ? '' : `<nav class="dtabs">${[['solicitudes',`Solicitudes${nS ? ` <span class="n">${nS}</span>` : ''}`],['aceptados',`Aceptados ${nA}`],['grupos','Grupos'],['porteria','Portería']].map(([k,l]) => `<button class="${dt === k ? 'on' : ''}" data-dt2="${k}">${l}</button>`).join('')}</nav>${panel}`}`;
+      <div style="min-width:0;flex:1"><h2>${cap(dLarga(f.dia))}</h2><p class="meta">${ic('clock','s')}Salida ${t5(f.inicio)}, regreso ${t5(f.fin)}</p><div style="margin-top:8px">${estadoTag(f)}</div></div></div>
+      ${f.estado === 'cancelada' ? `<div class="aviso cancel" style="margin-top:12px"><b>No hay café</b><p>${esc(f.motivo || '')}</p></div>` : ''}
+      <div class="btns" style="margin-top:14px">${f.estado === 'cancelada' ? '' : `<button class="btn sm pri" data-act="imprimir">${ic('dl','s')}Imprimir hoja</button>`}<button class="btn sm soft" data-act="opciones">Más opciones</button></div></div>
+    ${f.estado === 'cancelada' ? '' : `<nav class="dtabs">${tabsF.map(([k,l]) => `<button class="${dt === k ? 'on' : ''}" data-dt2="${k}">${l}</button>`).join('')}</nav>${panel}`}`;
+}
+function hojaOpciones(f){
+  const past = esPasada(f), it = (act, icon, t, sub, danger) => `<button class="r" data-act="${act}"><div class="ri ${danger ? 'red' : ''}">${ic(icon,'s')}</div><div class="rt"><b ${danger ? 'style="color:var(--red)"' : ''}>${t}</b><small>${sub}</small></div></button>`;
+  openSheet('Opciones de la fecha', `<div class="rows">
+    ${it('editar','edit','Editar fecha','Día, horario, lugar, cupos y nota')}
+    ${!past && f.estado !== 'cancelada' ? it('avisoh','send','Publicar un aviso','Lo ven los voluntarios de esta fecha') : ''}
+    ${!past && f.estado !== 'cancelada' ? it('cerrar','ban', f.estado === 'cerrada' ? 'Reabrir solicitudes' : 'Cerrar solicitudes', f.estado === 'cerrada' ? 'Los alumnos podrán volver a pedir unirse' : 'Nadie más puede pedir unirse') : ''}
+    ${it('copiar','copy','Copiar lista para Excel','Nombre, colegio, curso, estado, salida y regreso')}
+    ${!past && f.estado === 'cancelada' ? it('reactivar','cal','Reactivar fecha','Vuelve a estar abierta') : ''}
+    ${!past && f.estado !== 'cancelada' ? it('cancelar','ban','No hay café','Cancela la salida y avisa a los inscritos', true) : ''}
+    ${it('eliminar','trash','Eliminar fecha','Borra la fecha y sus solicitudes', true)}</div>`);
 }
 function hojaFechaC(f){
   const aj = C_().aj, n = !f; f = f || { dia:iso(hoy()), inicio:aj.inicio, fin:aj.fin, lugar:aj.lugar, cupos_vd:aj.cupos_vd, cupos_vm:aj.cupos_vm, nota:'' };
@@ -920,6 +972,46 @@ function hojaFechaC(f){
     <div class="grid2" style="margin-top:12px"><label class="field"><span>Cupos ${nomCol('vd')}</span><input type="number" min="0" id="fCvd" value="${f.cupos_vd}"></label><label class="field"><span>Cupos ${nomCol('vm')}</span><input type="number" min="0" id="fCvm" value="${f.cupos_vm}"></label></div>
     <label class="field" style="margin-top:12px"><span>Nota (opcional)</span><textarea id="fN" maxlength="200">${esc(f.nota || '')}</textarea></label>
     <div class="err" id="ferr"></div><button class="btn pri block" data-guardarf="${n ? '' : f.id}">${n ? 'Crear fecha' : 'Guardar'}</button>`);
+}
+
+/* ---------- documentos para imprimir ---------- */
+const PRINT_CSS = `@page{size:A4;margin:16mm}*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#10201A;margin:0}
+  .bar{height:8px;background:#FFCD1C;margin-bottom:18px}.head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:3px solid #0B4D30;padding-bottom:10px;margin-bottom:16px}
+  h1{font-size:24px;margin:0;color:#0B4D30}.sub{color:#55665C;font-size:13px;margin-top:4px}table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{border:1.5px solid #10201A;padding:7px 9px;text-align:left;vertical-align:top}th{background:#E4EFE7}.chk{width:46px;text-align:center}
+  .tag{font-size:11px;color:#55665C}.noprint{margin:18px 0;text-align:center}.noprint button{font-size:15px;padding:10px 18px;border-radius:10px;border:0;background:#0B4D30;color:#fff;cursor:pointer}
+  @media print{.noprint{display:none}}`;
+function abrirImpresion(titulo, cuerpo){
+  const w = window.open('', '_blank'); if (!w) return toast('Permite las ventanas emergentes para imprimir');
+  w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(titulo)}</title><style>${PRINT_CSS}</style></head><body>${cuerpo}
+    <div class="noprint"><button onclick="window.print()">Imprimir o guardar como PDF</button></div></body></html>`);
+  w.document.close(); setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 400);
+}
+function imprimirHoja(f){
+  const ac = solsDe(f.id, 'aceptado'), al = id => C_().al[id] || {}, ord = (a, b) => (al(a.alumno_id).nombre || '').localeCompare(al(b.alumno_id).nombre || '');
+  const bloque = (nombre, jefes, L5) => { const n = Math.max(L5.length, 1);
+    return L5.length ? L5.map((s, i) => `<tr>${i === 0 ? `<td rowspan="${n}"><b>${esc(nombre)}</b></td><td rowspan="${n}">${esc(jefes || '')}</td>` : ''}<td>${esc(al(s.alumno_id).nombre)} <span class="tag">${esc(al(s.alumno_id).curso || '')}, ${nomCol(al(s.alumno_id).colegio)}${al(s.alumno_id).autorizado ? '' : ', SIN AUTORIZACIÓN'}</span></td><td class="chk">☐</td><td class="chk">☐</td></tr>`).join('')
+      : `<tr><td><b>${esc(nombre)}</b></td><td>${esc(jefes || '')}</td><td class="tag">Nadie asignado</td><td class="chk"></td><td class="chk"></td></tr>`; };
+  const sinG = ac.filter(s => !C_().destinos.some(d => d.id === s.destino_id)).sort(ord);
+  const filas = C_().destinos.map(d => bloque(d.nombre, d.jefes, ac.filter(s => s.destino_id === d.id).sort(ord))).join('') + (sinG.length ? bloque('Sin grupo', '', sinG) : '');
+  abrirImpresion('Café Solidario ' + f.dia, `<div class="bar"></div><div class="head"><div><h1>Café Solidario</h1><div class="sub">${cap(dLarga(f.dia))} · Salida ${t5(f.inicio)} · Regreso ${t5(f.fin)} · ${esc(f.lugar)}</div></div><div class="sub">${ac.length} voluntarios</div></div>
+    <table><thead><tr><th style="width:20%">Destino</th><th style="width:18%">Jefes</th><th>Voluntarios</th><th class="chk">Salida</th><th class="chk">Regreso</th></tr></thead><tbody>${filas}</tbody></table>`);
+}
+function imprimirCertificado(){
+  const u = ST.alumno, fue = ST.fechas.filter(f => esPasada(f) && (miSol(f.id) || {}).salida).sort((a, b) => a.dia.localeCompare(b.dia));
+  if (!fue.length) return toast('Todavía no tienes salidas registradas en portería');
+  const min = f => { const [a, b] = t5(f.inicio).split(':').map(Number), [c, d] = t5(f.fin).split(':').map(Number); return Math.max(0, (c * 60 + d) - (a * 60 + b)); };
+  const total = fue.reduce((n, f) => n + min(f), 0), hTxt = m => `${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ''}`;
+  const hoyD = new Date(), cod = (u.id || '').slice(0, 8).toUpperCase();
+  abrirImpresion('Certificado ' + u.nombre, `<div class="bar"></div>
+    <div style="text-align:center;margin:10px 0 26px"><div style="display:inline-block;background:#6B4226;color:#F4E3CF;border-radius:14px;padding:10px 16px;font-size:22px">☕</div>
+      <h1 style="font-size:30px;margin-top:14px">Certificado de voluntariado</h1><div class="sub" style="font-size:15px">Proyecto Social Café Solidario · Colegio del Verbo Divino y Colegio Villa María</div></div>
+    <p style="font-size:16px;line-height:1.7;text-align:justify">Se certifica que <b>${esc(u.nombre)}</b>, ${esc(u.curso)} del Colegio ${esc(nomCol(u.colegio))}, participó como voluntario(a) en el Proyecto Social Café Solidario, visitando a personas que viven en hospederías y casas de acogida de Santiago, en <b>${fue.length} ${fue.length === 1 ? 'salida' : 'salidas'}</b>, sumando un total de <b>${hTxt(total)}</b> de servicio.</p>
+    <table style="margin-top:18px"><thead><tr><th>Fecha</th><th>Horario</th><th>Horas</th></tr></thead><tbody>${fue.map(f => `<tr><td>${cap(dLarga(f.dia))} de ${fromIso(f.dia).getFullYear()}</td><td>${t5(f.inicio)} a ${t5(f.fin)}</td><td>${hTxt(min(f))}</td></tr>`).join('')}
+      <tr><th colspan="2" style="text-align:right">Total</th><th>${hTxt(total)}</th></tr></tbody></table>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:70px;gap:20px">
+      <div class="sub">Santiago, ${hoyD.getDate()} de ${MES[hoyD.getMonth()]} de ${hoyD.getFullYear()}<br>Código de verificación: ${cod}</div>
+      <div style="text-align:center;min-width:240px"><div style="border-top:1.5px solid #10201A;padding-top:6px;font-size:13px">${esc(CONFIG.firmaCertificado)}</div></div></div>`);
 }
 
 /* ---------- cámara ---------- */
@@ -1008,6 +1100,9 @@ document.addEventListener('click', conTry(async e => {
       case 'pedir': { const m = await rpc('pedir_autorizacion'); await cargarAlumno(); render(); return compartir(m); }
       case 'compartir': return compartir();
       case 'oracion': return openSheet('Antes de salir', oracionHTML());
+      case 'opciones': return hojaOpciones(f);
+      case 'certificado': return imprimirCertificado();
+      case 'imprimir': return imprimirHoja(f);
       case 'adddest': await q(sb.from('destinos').insert({ nombre:'Nuevo destino', jefes:'', orden:C_().destinos.length + 1 })); return recargar('Destino agregado');
       case 'repartir': {
         const dests = C_().destinos; if (!dests.length) return toast('Primero crea los destinos en Ajustes');
@@ -1024,7 +1119,7 @@ document.addEventListener('click', conTry(async e => {
       }
       case 'recargar': return recargar('Actualizado');
       case 'nueva': return hojaFechaC(null);
-      case 'editar': return hojaFechaC(f);
+      case 'editar': closeSheet(true); return hojaFechaC(f);
       case 'mes': {
         const d = hoy(); d.setMonth(d.getMonth() + 1, 1); const m = d.getMonth(), aj = C_().aj, rows = [];
         while (d.getMonth() === m) { if (d.getDay() === 3 && !C_().fechas.some(x => x.dia === iso(d))) rows.push({ dia:iso(d), inicio:aj.inicio, fin:aj.fin, lugar:aj.lugar, cupos_vd:aj.cupos_vd, cupos_vm:aj.cupos_vm }); d.setDate(d.getDate() + 1); }
@@ -1032,12 +1127,12 @@ document.addEventListener('click', conTry(async e => {
         return recargar(rows.length ? `Agregamos ${rows.length} miércoles de ${MES[m]}` : `Los miércoles de ${MES[m]} ya estaban creados`);
       }
       case 'volver': ST.cfecha = null; return render();
-      case 'cerrar': await q(sb.from('fechas').update({ estado:f.estado === 'cerrada' ? 'abierta' : 'cerrada' }).eq('id', f.id)); return recargar();
-      case 'reactivar': await q(sb.from('fechas').update({ estado:'abierta', motivo:null }).eq('id', f.id)); return recargar('Fecha reactivada');
-      case 'cancelar': return openSheet('No hay café esta fecha', `<label class="field"><span>Motivo (lo verán los alumnos)</span><textarea id="cM" maxlength="160"></textarea></label><div class="err" id="cerr2"></div><button class="btn danger block" data-cancelok="${f.id}">${ic('ban','s')}Cancelar la salida</button>`);
-      case 'avisoh': return openSheet('Aviso a los inscritos', `<label class="field"><span>Mensaje</span><textarea id="avt" maxlength="300"></textarea></label><button class="btn pri block" style="margin-top:12px" data-act="aviso">${ic('send','s')}Publicar aviso</button>`);
+      case 'cerrar': closeSheet(); await q(sb.from('fechas').update({ estado:f.estado === 'cerrada' ? 'abierta' : 'cerrada' }).eq('id', f.id)); return recargar();
+      case 'reactivar': closeSheet(); await q(sb.from('fechas').update({ estado:'abierta', motivo:null }).eq('id', f.id)); return recargar('Fecha reactivada');
+      case 'cancelar': closeSheet(true); return openSheet('No hay café esta fecha', `<label class="field"><span>Motivo (lo verán los alumnos)</span><textarea id="cM" maxlength="160"></textarea></label><div class="err" id="cerr2"></div><button class="btn danger block" data-cancelok="${f.id}">${ic('ban','s')}Cancelar la salida</button>`);
+      case 'avisoh': closeSheet(true); return openSheet('Aviso a los inscritos', `<label class="field"><span>Mensaje</span><textarea id="avt" maxlength="300"></textarea></label><button class="btn pri block" style="margin-top:12px" data-act="aviso">${ic('send','s')}Publicar aviso</button>`);
       case 'aviso': { const v = $('#avt').value.trim(); if (!v) return; await q(sb.from('avisos').insert({ fecha_id:f.id, texto:v, autor:'Coordinación' })); closeSheet(); return recargar('Aviso publicado'); }
-      case 'eliminar': { const n = solsDe(f.id).length; if (!confirm(n ? `${n} personas pidieron unirse. ¿Eliminarla igual? Si solo no se hará, mejor usa "No hay café".` : '¿Eliminar esta fecha?')) return;
+      case 'eliminar': { closeSheet(); const n = solsDe(f.id).length; if (!confirm(n ? `${n} personas pidieron unirse. ¿Eliminarla igual? Si solo no se hará, mejor usa "No hay café".` : '¿Eliminar esta fecha?')) return;
         await q(sb.from('fechas').delete().eq('id', f.id)); await logC(`Se eliminó el ${dLarga(f.dia)}`); ST.cfecha = null; return recargar('Fecha eliminada'); }
       case 'copiar': { const rows = [['Nombre','Colegio','Curso','Estado','Salida','Regreso','Apoderado','Celular']].concat(solsDe(f.id).map(s => { const u = C_().al[s.alumno_id] || {}, r = C_().reg[(u.email || '').toLowerCase()] || {}; return [u.nombre, nomCol(u.colegio), u.curso, s.estado, s.salida ? hhmm(s.salida) : '', s.regreso ? hhmm(s.regreso) : '', r.nombre || '', r.celular || '']; }));
         return navigator.clipboard.writeText(rows.map(r => r.join('\t')).join('\n')).then(() => toast('Lista copiada para Excel')); }
@@ -1059,8 +1154,9 @@ document.addEventListener('click', conTry(async e => {
   }
 
   /* coordinación */
-  if ((el = t.closest('[data-ctab]'))) { ST.ctab = el.dataset.ctab; ST.cfecha = null; ST.q = ''; render(); return window.scrollTo(0, 0); }
-  if ((el = t.closest('[data-open]'))) { ST.cfecha = el.dataset.open; ST.ctab = 'fechas'; const f = fechaC(ST.cfecha); ST.dtab = el.dataset.dt || (esPasada(f) ? 'aceptados' : solsDe(f.id, 'solicitud').length ? 'solicitudes' : 'aceptados'); render(); return window.scrollTo(0, 0); }
+  if ((el = t.closest('[data-impr]'))) return imprimirHoja(fechaC(el.dataset.impr));
+  if ((el = t.closest('[data-ctab]'))) { ST.ctab = el.dataset.ctab; ST.cfecha = null; ST.q = ''; if (el.dataset.sin) ST.psub = 'sin'; render(); return window.scrollTo(0, 0); }
+  if ((el = t.closest('[data-open]'))) { ST.cfecha = el.dataset.open; ST.ctab = 'fechas'; const f = fechaC(ST.cfecha); ST.dtab = esPasada(f) ? 'aceptados' : (el.dataset.dt || (solsDe(f.id, 'solicitud').length ? 'solicitudes' : 'grupos')); render(); return window.scrollTo(0, 0); }
   if ((el = t.closest('[data-dt2]'))) { ST.dtab = el.dataset.dt2; return render(); }
   if ((el = t.closest('[data-pmode]'))) { ST.porteria = el.dataset.pmode; return render(); }
   if ((el = t.closest('[data-psub]'))) { ST.psub = el.dataset.psub; ST.q = ''; return render(); }
