@@ -338,6 +338,23 @@ a.btn{text-decoration:none}
 .pasos li .btn{margin-top:8px}
 .pasos li.wait b{color:var(--ink3)}
 .nextcard h2{font-size:24px}
+.focus h2{font-size:26px}
+.estado{display:flex;align-items:center;gap:8px;margin:14px 0 10px;padding:12px 14px;border-radius:14px;background:var(--sunk);font-weight:600}
+.estado.warn{background:var(--ysoft);color:var(--yink)}.estado.no{background:var(--redsoft);color:var(--red)}
+.focus.wait .estado{background:var(--ysoft);color:var(--yink)}
+.focus .btn.block{margin-top:4px}
+.bell{position:relative;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--surface);box-shadow:var(--shadow);margin-right:8px;flex:none}
+.bell .n{position:absolute;top:2px;right:2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
+.aviso.okav{background:var(--gsoft)}.aviso.okav b{color:var(--gink)}
+.pgroup{margin-bottom:16px}.pgroup h3{margin:0 2px 8px;font-size:15px;color:var(--ink2)}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.pbtn{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:74px;padding:12px 14px;border-radius:16px;background:var(--surface);box-shadow:var(--shadow);text-align:left;transition:background .2s,transform .15s}
+.pbtn:active{transform:scale(.97)}
+.pbtn .pn{font-weight:700;font-size:15.5px;line-height:1.2}
+.pbtn .ps{font-size:12.5px;color:var(--ink3);display:flex;align-items:center;gap:4px}
+.pbtn.on{background:var(--green2);color:#fff}.pbtn.on .ps{color:rgba(255,255,255,.85)}
+.pbtn.sinaut{background:var(--redsoft)}.pbtn.sinaut .ps{color:var(--red)}
+.camdet{margin-top:8px}.camdet summary{cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--ink2);font-weight:600;font-size:14.5px;padding:8px 2px}
 .dtabs{overflow-x:auto;scrollbar-width:none}.dtabs::-webkit-scrollbar{display:none}.dtabs button{white-space:nowrap;flex:none}
 .mates{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .mates span{width:100%;font-size:12.5px;font-weight:700;color:var(--yink);letter-spacing:.04em}
@@ -358,6 +375,31 @@ a.btn{text-decoration:none}
 .spin{width:34px;height:34px;border-radius:50%;border:3px solid var(--sunk);border-top-color:var(--green2);animation:sp 0.8s linear infinite;margin:0 auto 10px}
 @keyframes sp{to{transform:rotate(360deg)}}
 .refresh{position:fixed;right:16px;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:24}
+
+/* ===== Liquid Glass solo en la barra de abajo (estilo Apple) ===== */
+.tabbar.glass{overflow:hidden;border-radius:999px;padding:6px;
+  background:rgba(255,255,255,.42)!important;-webkit-backdrop-filter:blur(22px) saturate(210%) brightness(1.06);backdrop-filter:blur(22px) saturate(210%) brightness(1.06);
+  border:1px solid rgba(255,255,255,.65);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.95),inset 0 -1px 2px rgba(255,255,255,.3),inset 0 0 18px rgba(255,255,255,.18),0 12px 34px -12px rgba(16,32,26,.38),0 2px 6px -2px rgba(16,32,26,.12)!important}
+.tabbar.glass::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.55) 0%,rgba(255,255,255,.06) 45%,rgba(255,255,255,0) 60%,rgba(255,255,255,.14) 100%)}
+.tabbar.glass button{position:relative;z-index:1;background:transparent!important;color:var(--ink2);border-radius:999px;transition:color .35s,transform .25s cubic-bezier(.3,1.4,.5,1)}
+.tabbar.glass button:active{transform:scale(.9)}
+.tabbar.glass button.on{color:var(--green2)}
+.tabbar.glass .lens{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px) / 3);border-radius:999px;z-index:0;
+  background:rgba(255,255,255,.62);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,1),inset 0 -2px 6px rgba(16,32,26,.06),inset 0 0 0 1px rgba(255,255,255,.55),0 3px 12px -3px rgba(16,32,26,.22);
+  transform:translateX(calc(var(--ti) * 100%))}
+.tabbar.glass .lens::after{content:"";position:absolute;left:12%;right:12%;top:2px;height:42%;border-radius:999px;background:linear-gradient(rgba(255,255,255,.75),rgba(255,255,255,0))}
+.tabbar.glass .lens.moving{animation:lensMove .5s cubic-bezier(.3,1.25,.4,1)}
+@keyframes lensMove{0%{transform:translateX(calc(var(--tf) * 100%)) scale(1)}45%{transform:translateX(calc((var(--tf) + (var(--ti) - var(--tf)) * .6) * 100%)) scale(1.12,.92)}100%{transform:translateX(calc(var(--ti) * 100%)) scale(1)}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tabbar.glass{background:rgba(28,48,38,.45)!important;border-color:rgba(255,255,255,.16);box-shadow:inset 0 1px 1px rgba(255,255,255,.22),0 14px 36px -12px rgba(0,0,0,.7)!important}
+  :root:not([data-theme="light"]) .tabbar.glass::before{background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0) 50%)}
+  :root:not([data-theme="light"]) .tabbar.glass .lens{background:rgba(255,255,255,.14);box-shadow:inset 0 1px 1px rgba(255,255,255,.35),0 3px 12px -3px rgba(0,0,0,.5)}
+  :root:not([data-theme="light"]) .tabbar.glass .lens::after{background:linear-gradient(rgba(255,255,255,.25),rgba(255,255,255,0))}
+  :root:not([data-theme="light"]) .tabbar.glass button.on{color:var(--gink)}}
+@media (prefers-reduced-transparency:reduce){.tabbar.glass{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--surface)!important}}
+@media (prefers-reduced-motion:reduce){.tabbar.glass .lens.moving{animation:none}}
 </style>
 </head>
 <body>
@@ -471,22 +513,22 @@ function topBar(sub, derecha = ''){
 }
 function vIngreso(){
   const titulos = { alumno:'Entra con tu correo del colegio', apoderado:'Entra con tu correo', coord:'Entrar como jefe o coordinación' };
-  const sub = { alumno:'Te mandamos un código a tu correo. No hay contraseñas.', apoderado:'Usa el correo que tienes registrado en el colegio. Ahí te llega el código.', coord:'Solo pueden entrar los correos autorizados por cada colegio.' };
+  const sub = { alumno:'Te llega un código al correo.', apoderado:'Te llega un código al correo.', coord:'Solo correos autorizados.' };
   let body;
   if (L.paso === 'inicio') return `<div class="shell view">${topBar()}
     <div class="auth-hero"><svg class="cup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true">${P.cup}</svg>
-      <h1 style="color:#fff">Café Solidario</h1><p>Cada semana salimos a compartir un café y una conversación.</p></div>
+      <h1 style="color:#fff">Café Solidario</h1><p>Un café y una conversación, cada semana.</p></div>
     <div class="land">
-      <button class="r" data-modo="alumno"><div class="ri cof">${ic('user')}</div><div class="rt"><b>Soy alumno o alumna</b><small>Pide unirte a las salidas y ve tu pase</small></div>${ic('cr','s chev')}</button>
-      <button class="r" data-modo="coord"><div class="ri">${ic('shield')}</div><div class="rt"><b>Soy jefe o coordinación</b><small>Acepta solicitudes, arma los grupos y marca autorizaciones</small></div>${ic('cr','s chev')}</button>
-    </div><p class="foot" style="margin-top:6px;font-size:11.5px">Versión 7</p></div>`;
+      <button class="r" data-modo="alumno"><div class="ri cof">${ic('user')}</div><div class="rt"><b>Soy alumno o alumna</b><small>Pide unirte a las salidas</small></div>${ic('cr','s chev')}</button>
+      <button class="r" data-modo="coord"><div class="ri">${ic('shield')}</div><div class="rt"><b>Soy jefe o coordinación</b><small>Organiza las salidas</small></div>${ic('cr','s chev')}</button>
+    </div><p class="foot" style="margin-top:6px;font-size:11.5px">Versión 10</p></div>`;
   if (L.paso === 'correo') body = `
     <label class="field"><span>Correo</span><input id="lmail" type="email" inputmode="email" autocomplete="email" value="${esc(L.email)}" placeholder="nombre@colegio.cl"></label>
     <div class="err" id="lerr"></div>
     <button class="btn pri block" id="lgo" ${L.ocupado ? 'disabled' : ''}>${L.ocupado ? 'Enviando…' : 'Enviar código'}</button>
 `;
   else body = `
-    <p class="muted small">Mandamos un código de ${CONFIG.otpLen} dígitos a <b style="color:var(--ink)">${esc(L.email)}</b>. Revisa también la carpeta de spam.</p>
+    <p class="muted small">Mandamos un código de ${CONFIG.otpLen} dígitos a <b style="color:var(--ink)">${esc(L.email)}</b>. Revisa spam si no llega.</p>
     <input class="otp" id="lotp" inputmode="numeric" autocomplete="one-time-code" maxlength="${CONFIG.otpLen}" placeholder="${'·'.repeat(CONFIG.otpLen)}" aria-label="Código" style="margin-top:16px">
     <div class="err" id="lerr"></div>
     <button class="btn pri block" id="lok" ${L.ocupado ? 'disabled' : ''}>${L.ocupado ? 'Verificando…' : 'Verificar'}</button>
@@ -494,7 +536,7 @@ function vIngreso(){
   return `<div class="shell view">${topBar()}
     <button class="back" data-act="volverinicio">${ic('back','s')}Volver</button>
     <div class="card pad20"><h2>${titulos[L.modo]}</h2><p class="muted small" style="margin:6px 0 16px">${sub[L.modo]}</p>${body}
-      <div class="secure">${ic('shield','s')}<span>No hay contraseñas: el código solo te lo pedimos la primera vez en cada celular. Después quedas dentro por 30 días.</span></div></div></div>`;
+      <div class="secure">${ic('shield','s')}<span>Sin contraseñas. Te pedimos el código solo la primera vez.</span></div></div></div>`;
 }
 function bindIngreso(){
   const err = m => { const e = $('#lerr'); if (e) e.textContent = m || ''; };
@@ -630,6 +672,22 @@ function pasos(f, sp){
       ${paso(3, est === 'aceptado' ? 'done' : est === 'rechazado' ? 'no' : est ? 'now' : 'wait', 'Confirmación de los jefes', est === 'aceptado' ? 'Quedaste. Tu pase está abajo.' : est === 'rechazado' ? 'Esta vez no quedaste. Tendrás más prioridad la próxima.' : est ? 'Están revisando los cupos. Te aparece aquí cuando confirmen.' : 'Después de pedir unirte, los jefes confirman los cupos.')}
     </ol>${est ? `<button class="lk small" data-fecha="${f.id}" style="margin-top:4px">Ver detalles de la salida</button>` : ''}</div>`;
 }
+function listaAvisos(){
+  const out = [], fd = id => ST.fechas.find(f => f.id === id);
+  ST.avisos.forEach(a => { const f = fd(a.fecha_id); if (f && miSol(f.id)) out.push({ ts:new Date(a.creado).getTime(), t:a.texto, de:a.autor + ' · ' + dLarga(f.dia), k:/no hay café/i.test(a.texto) ? 'no' : '' }); });
+  ST.mis.forEach(s => { const f = fd(s.fecha_id); if (!f || esPasada(f)) return;
+    if (s.estado === 'aceptado') out.push({ ts:new Date(s.creada).getTime() + 1, t:`Quedaste para el ${dLarga(f.dia)}.`, de:'Jefes', k:'ok' });
+    if (s.estado === 'rechazado') out.push({ ts:new Date(s.creada).getTime() + 1, t:`Esta vez no quedaste para el ${dLarga(f.dia)}.`, de:'Jefes', k:'' }); });
+  futurasA().filter(f => f.estado === 'cancelada').forEach(f => out.push({ ts:new Date(f.creado || Date.now()).getTime(), t:`No hay café el ${dLarga(f.dia)}. ${f.motivo || ''}`, de:'Jefes', k:'no' }));
+  if (!vigenteA()) out.push({ ts:0, t:'Falta tu autorización firmada.', de:'Recordatorio', k:'warn' });
+  return out.sort((a, b) => b.ts - a.ts);
+}
+function hojaAvisos(){
+  localStorage.setItem('cs-avisos-visto', String(Date.now()));
+  const L6 = listaAvisos();
+  openSheet('Avisos', L6.length ? `<div class="stack">${L6.map(a => `<div class="aviso ${a.k === 'no' ? 'cancel' : a.k === 'ok' ? 'okav' : ''}"><b>${esc(a.de)}${a.ts > 1 ? ' · ' + hace(a.ts) : ''}</b><p>${esc(a.t)}</p></div>`).join('')}</div>` : `<div class="empty">${ic('bell')}No tienes avisos.</div>`);
+  setTimeout(render, 450);
+}
 function oracionHTML(){ return `<div class="prayer"><h2>Oración Café Solidario</h2>${CONFIG.oracion.map(l => `<p>${esc(l)}</p>`).join('')}</div>`; }
 const destinoDe = s => s && s.destino_id && (ST.destinos || (ST.c && ST.c.destinos) || []).find(d => d.id === s.destino_id);
 function tagFecha(f, s){
@@ -675,19 +733,26 @@ function vAlumno(){
     const hr = new Date().getHours(), saludo = hr < 12 ? 'Buenos días' : hr < 20 ? 'Buenas tardes' : 'Buenas noches';
     const pend = fut.filter(f => { const s = miSol(f.id); return s && s.estado === 'solicitud'; });
     const misIds = new Set(ST.mis.map(s => s.fecha_id)), avisos = ST.avisos.filter(a => misIds.has(a.fecha_id)).slice(0, 3);
-    const sp = prox ? miSol(prox.id) : null;
+    const sp = prox ? miSol(prox.id) : null, est = sp ? sp.estado : null;
+    let foco;
+    if (mio) foco = (vigenteA() ? '' : `<a class="estado warn" style="margin:0;text-decoration:none" href="${CONFIG.pdfAutorizacion}" target="_blank" rel="noopener" download>${ic('pen','s')}Falta tu autorización firmada. Toca para descargarla.</a>`) + pase(mio.f, mio.s) + `<button class="btn soft block" data-act="oracion">${ic('heart','s')}Oración antes de salir</button>`;
+    else if (!prox) foco = `<div class="card empty">${ic('cal')}Todavía no hay próxima salida.</div>`;
+    else {
+      const cab = `<span class="muted small">Próxima salida</span><h2 style="margin-top:4px">${cap(dLarga(prox.dia))}</h2><p class="meta" style="margin-top:4px">${ic('clock','s')}${t5(prox.inicio)} a ${t5(prox.fin)}</p>`;
+      if (est === 'solicitud') foco = `<div class="card pad20 focus wait">${cab}<div class="estado">${ic('clock','s')}Solicitud enviada. Esperando a los jefes.</div><button class="lk small" data-fecha="${prox.id}">Ver detalles</button></div>`;
+      else if (est === 'rechazado') foco = `<div class="card pad20 focus">${cab}<div class="estado no">Esta vez no quedaste.</div><button class="btn soft block" data-tab="fechas">Ver otras fechas</button></div>`;
+      else if (!vigenteA()) foco = `<div class="card pad20 focus">${cab}<div class="estado warn">${ic('pen','s')}Falta tu autorización firmada.</div>
+        <a class="btn yel block" href="${CONFIG.pdfAutorizacion}" target="_blank" rel="noopener" download>${ic('dl','s')}Descargar autorización</a>
+        <p class="hint" style="text-align:center">Imprímela, que la firme tu apoderado y entrégasela a tu jefe. <button class="lk small" data-fecha="${prox.id}">Pedir unirme igual</button></p></div>`;
+      else if (prox.estado !== 'abierta') foco = `<div class="card pad20 focus">${cab}<div class="estado">Solicitudes cerradas.</div></div>`;
+      else foco = `<div class="card pad20 focus">${cab}<button class="btn pri block" data-sol="${prox.id}" style="margin-top:14px">${ic('cup','s')}Pedir unirme</button></div>`;
+    }
     body = `<p class="muted">${saludo},</p><h1 style="margin-top:2px">${esc(u.nombre.split(' ')[0])}</h1>
-      <div class="stack" style="margin-top:18px">
-      ${fut.filter(f => f.estado === 'cancelada' && (!prox || f.dia < prox.dia)).slice(0, 1).map(f => `<div class="aviso cancel"><b>No hay café el ${dLarga(f.dia)}</b><p>${esc(f.motivo || '')}</p></div>`).join('')}
-      ${prox ? pasos(prox, sp) : `<div class="card empty">${ic('cal')}Los jefes todavía no publican la próxima salida.</div>`}
-      ${mio ? pase(mio.f, mio.s) + `<button class="card r" data-act="oracion" style="border-radius:18px"><div class="ri cof">${ic('heart','s')}</div><div class="rt"><b>Oración antes de salir</b><small>La rezamos todos juntos en portería</small></div>${ic('cr','s chev')}</button>` : ''}
-      ${baja}
-      ${avisos.map(a => `<div class="aviso"><b>${esc(a.autor)} · ${hace(new Date(a.creado).getTime())}</b><p>${esc(a.texto)}</p></div>`).join('')}
-      ${fut.length > 1 ? `<button class="btn soft block" data-tab="fechas">${ic('cal','s')}Ver todas las fechas</button>` : ''}</div>`;
+      <div class="stack" style="margin-top:18px">${foco}${baja}</div>`;
   } else if (tab === 'fechas') {
     let last = '', html = '';
     fut.forEach(f => { const m = cap(MES[fromIso(f.dia).getMonth()]); if (m !== last) { html += `<div class="month">${m}</div>`; last = m; } html += filaFechaA(f); });
-    body = `<h1>Fechas</h1><p class="muted" style="margin-top:6px">Pides unirte y la coordinación confirma los cupos. Tienen prioridad quienes han ido menos veces.</p>
+    body = `<h1>Fechas</h1><p class="muted" style="margin-top:6px">Tienen prioridad quienes han ido menos.</p>
       <div class="stack" style="margin-top:16px">${html || `<div class="card empty">${ic('cal')}No hay fechas publicadas todavía.</div>`}</div>`;
   } else {
     const a = ST.aut, fueron = ST.fechas.filter(f => esPasada(f) && (miSol(f.id) || {}).salida);
@@ -709,8 +774,10 @@ function vAlumno(){
       <div class="rows"><div class="r"><div class="ri">${ic('mail','s')}</div><div class="rt"><b>${esc(u.email)}</b><small>Este celular queda recordado por 30 días</small></div></div>
         <button class="r" data-act="salir"><div class="ri red">${ic('out','s')}</div><div class="rt"><b>Cerrar sesión ahora</b><small>Para volver a entrar necesitarás un código</small></div></button></div>`;
   }
-  return `<div class="shell view">${topBar('', `<button class="avatar av ${u.colegio}" data-tab="perfil" aria-label="Mi perfil">${ini(u.nombre)}</button>`)}${body}</div>
-    <nav class="tabbar" aria-label="Secciones">${[['inicio','home','Inicio'],['fechas','cal','Fechas'],['perfil','user','Perfil']].map(([k,i,l]) => `<button class="${tab === k ? 'on' : ''}" data-tab="${k}" aria-current="${tab === k}">${ic(i)}${l}</button>`).join('')}</nav>`;
+  const nAv = listaAvisos().filter(a => a.ts > (+localStorage.getItem('cs-avisos-visto') || 0)).length;
+  return `<div class="shell view">${topBar('', `<button class="bell" data-act="avisos" aria-label="Avisos">${ic('bell')}${nAv ? `<span class="n">${nAv}</span>` : ''}</button><button class="avatar av ${u.colegio}" data-tab="perfil" aria-label="Mi perfil">${ini(u.nombre)}</button>`)}${body}</div>
+    <nav class="tabbar glass" aria-label="Secciones">${(() => { const tabs = ['inicio','fechas','perfil'], ti = tabs.indexOf(tab), tf = tabs.indexOf(ST.prevTab || tab); ST.prevTab = tab;
+      return `<i class="lens ${ti !== tf ? 'moving' : ''}" style="--ti:${ti};--tf:${tf}"></i>`; })()}${[['inicio','home','Inicio'],['fechas','cal','Fechas'],['perfil','user','Perfil']].map(([k,i,l]) => `<button class="${tab === k ? 'on' : ''}" data-tab="${k}" aria-current="${tab === k}">${ic(i)}${l}</button>`).join('')}</nav>`;
 }
 function hojaFecha(id){
   const f = ST.fechas.find(x => x.id === id); if (!f) return;
@@ -729,7 +796,7 @@ function hojaFecha(id){
     ${s && s.estado === 'aceptado' && !esPasada(f) ? pase(f, s) + '<div style="height:14px"></div>' : ''}
     ${!s ? `<div class="rows" style="margin-bottom:12px">${(ST.destinos || []).map(d => `<div class="r"><div class="ri">${ic('map','s')}</div><div class="rt"><b>${esc(d.nombre)}</b><small>Jefe: ${esc(d.jefes || '')}</small></div></div>`).join('')}</div>` : ''}
     <div class="rows" style="margin:4px 0 16px">
-      <div class="r"><div class="ri cof">${ic('clock','s')}</div><div class="rt"><b>Salida ${t5(f.inicio)}, regreso ${t5(f.fin)}</b><small>Salimos en furgones. Llega 10 minutos antes</small></div></div>
+      <div class="r"><div class="ri cof">${ic('clock','s')}</div><div class="rt"><b>Salida ${t5(f.inicio)}, regreso ${t5(f.fin)}</b><small>Llega 10 minutos antes</small></div></div>
       <div class="r"><div class="ri cof">${ic('map','s')}</div><div class="rt"><b>${esc(f.lugar)}</b><small>Punto de encuentro y regreso</small></div></div>
       ${f.nota ? `<div class="r"><div class="ri cof">${ic('bell','s')}</div><div class="rt"><b>Nota de la coordinación</b><small>${esc(f.nota)}</small></div></div>` : ''}
     </div>${acc}`);
@@ -896,7 +963,7 @@ function vCoord(){
   } else if (t === 'personas') {
     const qq = ST.q.trim().toLowerCase(), sin = ST.psub === 'sin';
     const lista = c.alumnos.filter(u => (!sin || !u.autorizado) && (!qq || (u.nombre + u.email + u.curso).toLowerCase().includes(qq)));
-    body = `<div class="aviso" style="margin-bottom:12px"><b>Autorización en papel</b><p>Cuando un alumno te entregue la autorización firmada, toca el botón para marcarla. Sin eso no puede salir en portería.</p></div>
+    body = `<p class="muted small" style="margin-bottom:12px">Toca el botón cuando te entreguen la autorización firmada.</p>
       <div class="chips"><button class="chip ${!sin ? 'on' : ''}" data-psub="todos">Todos ${c.alumnos.length}</button><button class="chip ${sin ? 'on' : ''}" data-psub="sin">Sin autorización ${c.alumnos.filter(a => !a.autorizado).length}</button></div>
       <label class="search">${ic('users','s')}<input id="aq" placeholder="Buscar por nombre, curso o correo" value="${esc(ST.q)}"></label>
       <div class="rows">${lista.map(u => { const h = histC(u.id);
@@ -924,7 +991,7 @@ function vFechaC(f){
   let panel;
   if (dt === 'solicitudes') {
     const L3 = solsDe(f.id, 'solicitud').sort((a, b) => puntaje(a) - puntaje(b));
-    panel = `<div class="aviso" style="margin-bottom:12px;background:var(--crema)"><b style="color:var(--cink)">Prioridad justa</b><p class="small">Ordenadas por quién ha ido menos. Quienes faltaron sin avisar quedan al final.</p></div>
+    panel = `<p class="muted small" style="margin-bottom:12px">Primero quienes han ido menos.</p>
       ${sug.size ? `<button class="btn yel block" style="margin-bottom:12px" data-act="aceptsug">${ic('star','s')}Aceptar sugeridos (${sug.size})</button>` : ''}
       <div class="rows">${L3.map(s => persona(f, s, 'sol', sug.has(s.id))).join('') || `<div class="empty">${ic('inbox')}No hay solicitudes por revisar.</div>`}</div>`;
   } else if (dt === 'grupos') {
@@ -937,13 +1004,20 @@ function vFechaC(f){
   } else if (dt === 'aceptados') panel = `<div class="rows">${solsDe(f.id, 'aceptado').map(s => persona(f, s, 'acep')).join('') || '<div class="empty">Todavía no aceptas a nadie.</div>'}</div>`;
   else {
     const ac = solsDe(f.id, 'aceptado'), sal = ac.filter(s => s.salida).length, reg = ac.filter(s => s.regreso).length, faltan = ac.filter(s => s.salida && !s.regreso);
-    panel = `<div class="seg" data-seg><button class="${ST.porteria === 'salida' ? 'on' : ''}" data-pmode="salida">Salida</button><button class="${ST.porteria === 'regreso' ? 'on' : ''}" data-pmode="regreso">Regreso</button><i></i></div>
-      <div class="statrow" style="margin-bottom:12px"><div class="stat"><span class="big">${sal}/${ac.length}</span><small>salieron</small></div><div class="stat"><span class="big">${reg}/${sal}</span><small>volvieron</small></div><div class="stat" style="${faltan.length ? 'background:var(--redsoft)' : ''}"><span class="big">${faltan.length}</span><small>faltan por volver</small></div></div>
-      <div class="scanbox" id="scanbox"><video id="vid" playsinline muted></video><canvas id="scv" hidden></canvas>
-        <div class="scanidle">${ic('qr')}<p>Escanea el pase de cada alumno al ${ST.porteria === 'salida' ? 'salir' : 'volver'}</p><div class="btns" style="justify-content:center"><button class="btn pri" data-act="camara">${ic('scan','s')}Abrir cámara</button>${ST.porteria === 'salida' ? `<button class="btn soft" data-act="oracion">${ic('heart','s')}Oración</button>` : ''}</div></div></div>
-      ${faltan.length && ST.porteria === 'regreso' ? `<div class="aviso cancel" style="margin:12px 0"><b>Faltan por volver</b><p>${faltan.map(s => esc((C_().al[s.alumno_id] || {}).nombre)).join(', ')}</p></div>` : ''}
-      <div class="sec" style="margin-top:16px"><h2>Marcar a mano</h2></div>
-      <div class="rows">${(ST.porteria === 'regreso' ? ac.filter(s => s.salida) : ac).map(s => persona(f, s, 'port')).join('') || '<div class="empty">Nadie por marcar.</div>'}</div>`;
+    const k = ST.porteria, al = id => C_().al[id] || {}, lista = (k === 'regreso' ? ac.filter(x => x.salida) : ac);
+    const btn = x => `<button class="pbtn ${x[k] ? 'on' : ''} ${!al(x.alumno_id).autorizado && k === 'salida' ? 'sinaut' : ''}" data-marca="${x.qr}">
+      <span class="pn">${esc(al(x.alumno_id).nombre || '?')}</span><span class="ps">${x[k] ? `${ic('check','s')}${hhmm(x[k])}` : !al(x.alumno_id).autorizado && k === 'salida' ? 'Sin autorización' : 'Tocar para marcar'}</span></button>`;
+    const grupos = C_().destinos.map(d => ({ d, L:lista.filter(x => x.destino_id === d.id) })).filter(g => g.L.length), sinG = lista.filter(x => !C_().destinos.some(d => d.id === x.destino_id));
+    panel = `<div class="seg" data-seg><button class="${k === 'salida' ? 'on' : ''}" data-pmode="salida">Salida ${sal}/${ac.length}</button><button class="${k === 'regreso' ? 'on' : ''}" data-pmode="regreso">Regreso ${reg}/${sal}</button><i></i></div>
+      ${k === 'regreso' && faltan.length ? `<div class="aviso cancel" style="margin-bottom:12px"><b>Faltan por volver: ${faltan.length}</b><p>${faltan.map(x => esc(al(x.alumno_id).nombre)).join(', ')}</p></div>` : ''}
+      ${grupos.map(g => `<div class="pgroup"><h3>${esc(g.d.nombre)}</h3><div class="pgrid">${g.L.map(btn).join('')}</div></div>`).join('')}
+      ${sinG.length ? `<div class="pgroup"><h3>Sin grupo</h3><div class="pgrid">${sinG.map(btn).join('')}</div></div>` : ''}
+      ${lista.length ? '' : `<div class="empty">${k === 'regreso' ? 'Todavía nadie ha salido.' : 'No hay aceptados.'}</div>`}
+      <details class="camdet"><summary>${ic('scan','s')}Usar la cámara para escanear pases</summary>
+        <div class="scanbox" id="scanbox" style="margin-top:10px"><video id="vid" playsinline muted></video><canvas id="scv" hidden></canvas>
+        <div class="scanidle"><button class="btn pri" data-act="camara">${ic('scan','s')}Abrir cámara</button></div></div></details>
+      ${k === 'salida' ? `<button class="btn soft block" style="margin-top:12px" data-act="oracion">${ic('heart','s')}Oración antes de salir</button>` : ''}`;
+
   }
   const tabsF = past ? [['aceptados','Asistencia']] : [['solicitudes',`1. Solicitudes${nS ? ` <span class="n">${nS}</span>` : ''}`],['grupos',`2. Grupos ${nA}`],['porteria','3. Portería']];
   return `<button class="back" data-act="volver">${ic('back','s')}Todas las fechas</button>
@@ -1101,6 +1175,7 @@ document.addEventListener('click', conTry(async e => {
       case 'compartir': return compartir();
       case 'oracion': return openSheet('Antes de salir', oracionHTML());
       case 'opciones': return hojaOpciones(f);
+      case 'avisos': return hojaAvisos();
       case 'certificado': return imprimirCertificado();
       case 'imprimir': return imprimirHoja(f);
       case 'adddest': await q(sb.from('destinos').insert({ nombre:'Nuevo destino', jefes:'', orden:C_().destinos.length + 1 })); return recargar('Destino agregado');
@@ -1167,7 +1242,9 @@ document.addEventListener('click', conTry(async e => {
   if ((el = t.closest('[data-rech]'))) { await q(sb.from('solicitudes').update({ estado:'rechazado' }).eq('id', el.dataset.rech)); return recargar('Le avisamos que esta vez no quedó'); }
   if ((el = t.closest('[data-quitar]'))) { await q(sb.from('solicitudes').update({ estado:'solicitud' }).eq('id', el.dataset.quitar)); return recargar('Volvió a solicitudes'); }
   if ((el = t.closest('[data-perd]'))) { await q(sb.from('solicitudes').update({ perdonada:el.dataset.v === '1' }).eq('id', el.dataset.perd)); return recargar(el.dataset.v === '1' ? 'Falta perdonada' : 'La falta vuelve a contar'); }
-  if ((el = t.closest('[data-marca]'))) { const s = C_().sols.find(x => x.qr === el.dataset.marca); if (s && s[ST.porteria]) return toast('Ya estaba marcado'); return marcarQR(el.dataset.marca, false); }
+  if ((el = t.closest('[data-marca]'))) { const s = C_().sols.find(x => x.qr === el.dataset.marca); if (s && s[ST.porteria]) {
+      if (!confirm('¿Desmarcar a esta persona?')) return; const upd = ST.porteria === 'salida' ? { salida:null, regreso:null } : { regreso:null }; await q(sb.from('solicitudes').update(upd).eq('id', s.id)); return recargar('Desmarcado'); }
+    return marcarQR(el.dataset.marca, false); }
   if ((el = t.closest('[data-delreg]'))) { if (!confirm('¿Quitar a este apoderado del registro?')) return; await q(sb.from('registro_apoderados').delete().eq('alumno_email', el.dataset.delreg)); return recargar('Quitado'); }
   if ((el = t.closest('[data-cod]'))) { await q(sb.from('codigos_invitacion').update({ activo:el.dataset.v === '1' }).eq('codigo', el.dataset.cod)); return recargar(); }
   if ((el = t.closest('[data-newcod]'))) { const code = `CAFE-${el.dataset.newcod.toUpperCase()}-${rid(4).toUpperCase()}`; await q(sb.from('codigos_invitacion').insert({ codigo:code, colegio:el.dataset.newcod })); return recargar(`Código ${code} creado`); }
