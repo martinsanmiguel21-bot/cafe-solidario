@@ -461,7 +461,7 @@ function vIngreso(){
     <div class="land">
       <button class="r" data-modo="alumno"><div class="ri cof">${ic('user')}</div><div class="rt"><b>Soy alumno o alumna</b><small>Pide unirte a las salidas y ve tu pase</small></div>${ic('cr','s chev')}</button>
       <button class="r" data-modo="coord"><div class="ri">${ic('shield')}</div><div class="rt"><b>Soy jefe o coordinación</b><small>Acepta solicitudes, arma los grupos y marca autorizaciones</small></div>${ic('cr','s chev')}</button>
-    </div><p class="foot" style="margin-top:6px;font-size:11.5px">Versión 4</p></div>`;
+    </div><p class="foot" style="margin-top:6px;font-size:11.5px">Versión 5</p></div>`;
   if (L.paso === 'correo') body = `
     <label class="field"><span>Correo</span><input id="lmail" type="email" inputmode="email" autocomplete="email" value="${esc(L.email)}" placeholder="nombre@colegio.cl"></label>
     <div class="err" id="lerr"></div>
@@ -501,7 +501,12 @@ function bindIngreso(){
       if (L.ocupado) return;
       const t = $('#lotp').value.replace(/\D/g, ''); if (t.length !== CONFIG.otpLen) return err(`El código tiene ${CONFIG.otpLen} dígitos`);
       L.ocupado = true; $('#lok').disabled = true;
-      const { error } = await sb.auth.verifyOtp({ email:L.email, token:t, type:'email' });
+      let error = null;
+      for (const type of ['email', 'signup', 'magiclink']) {   // cuentas nuevas y existentes usan tipos distintos
+        const r = await sb.auth.verifyOtp({ email:L.email, token:t, type });
+        error = r.error; if (!error) break;
+        if (!/expired|invalid|not found/i.test(error.message || '')) break;
+      }
       L.ocupado = false;
       if (error) { $('#lok').disabled = false; return err(msgError(error)); }
       localStorage.setItem('cs-login', String(Date.now()));
