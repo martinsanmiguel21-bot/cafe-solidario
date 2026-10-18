@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Café Solidario</title>
+<meta name="theme-color" content="#0B4D30">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Café Solidario">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -400,6 +408,7 @@ a.btn{text-decoration:none}
   :root:not([data-theme="light"]) .tabbar.glass button.on{color:var(--gink)}}
 @media (prefers-reduced-transparency:reduce){.tabbar.glass{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--surface)!important}}
 @media (prefers-reduced-motion:reduce){.tabbar.glass .lens.moving{animation:none}}
+button.estado{width:100%;text-align:left;cursor:pointer}
 </style>
 </head>
 <body>
@@ -521,7 +530,7 @@ function vIngreso(){
     <div class="land">
       <button class="r" data-modo="alumno"><div class="ri cof">${ic('user')}</div><div class="rt"><b>Soy alumno o alumna</b><small>Pide unirte a las salidas</small></div>${ic('cr','s chev')}</button>
       <button class="r" data-modo="coord"><div class="ri">${ic('shield')}</div><div class="rt"><b>Soy jefe o coordinación</b><small>Organiza las salidas</small></div>${ic('cr','s chev')}</button>
-    </div><p class="foot" style="margin-top:6px;font-size:11.5px">Versión 10</p></div>`;
+    </div><p class="foot" style="margin-top:6px;font-size:11.5px">Versión 11</p></div>`;
   if (L.paso === 'correo') body = `
     <label class="field"><span>Correo</span><input id="lmail" type="email" inputmode="email" autocomplete="email" value="${esc(L.email)}" placeholder="nombre@colegio.cl"></label>
     <div class="err" id="lerr"></div>
@@ -618,6 +627,7 @@ async function cargarAlumno(){
     q(sb.from('ajustes').select('*').eq('id', 1).maybeSingle()),
     q(sb.from('destinos').select('*').order('orden')),
   ]);
+  precargarPDF();
   ST.destinos = destinos; ST.fechas = fechas; ST.grupo = {};
   const prox = mis.filter(s => s.estado === 'aceptado' && s.destino_id && fechas.some(f => f.id === s.fecha_id && fromIso(f.dia) >= hoy()));
   await Promise.all(prox.map(async s => { try { ST.grupo[s.fecha_id] = await rpc('mi_grupo', { p_fecha:s.fecha_id }); } catch (e) {} })); ST.mis = mis; ST.aut = aut; ST.avisos = avisos; ST.ajustes = aj || {};
@@ -659,7 +669,7 @@ function bannerAut(){
   if (vigenteA()) return '';
   return `<div class="card banner" style="background:var(--ysoft)"><div class="ri y" style="background:var(--y);color:#2B2200">${ic('pen')}</div><div><h3>Falta tu autorización firmada</h3>
     <p>Descárgala, imprímela, que tu apoderado la firme y entrégasela a tu jefe. Él la marca en la app y listo: vale todo el semestre.</p>
-    <div class="btns"><a class="btn sm yel" href="${CONFIG.pdfAutorizacion}" target="_blank" rel="noopener" download>${ic('dl','s')}Descargar autorización</a></div></div></div>`;
+    <div class="btns"><button class="btn sm yel" data-act="pdf">${ic('dl','s')}Descargar autorización</button></div></div></div>`;
 }
 function pasos(f, sp){
   const ok = vigenteA(), est = sp ? sp.estado : null;
@@ -667,7 +677,7 @@ function pasos(f, sp){
   return `<div class="card pad20 nextcard"><span class="muted small">Próxima salida</span><h2 style="margin-top:4px">${cap(dLarga(f.dia))}</h2>
     <p class="meta" style="margin-top:4px">${ic('clock','s')}Salida ${t5(f.inicio)}, regreso ${t5(f.fin)}</p>
     <ol class="pasos">
-      ${paso(1, ok ? 'done' : 'now', 'Autorización firmada', ok ? 'Tu jefe ya la recibió. Vale todo el semestre.' : 'Imprímela, que la firme tu apoderado y entrégasela a tu jefe.', ok ? '' : `<a class="btn sm yel" href="${CONFIG.pdfAutorizacion}" target="_blank" rel="noopener" download>${ic('dl','s')}Descargar</a>`)}
+      ${paso(1, ok ? 'done' : 'now', 'Autorización firmada', ok ? 'Tu jefe ya la recibió. Vale todo el semestre.' : 'Imprímela, que la firme tu apoderado y entrégasela a tu jefe.', ok ? '' : `<button class="btn sm yel" data-act="pdf">${ic('dl','s')}Descargar</button>`)}
       ${paso(2, est ? 'done' : (f.estado === 'abierta' ? 'now' : 'wait'), 'Pedir unirte', est ? 'Ya enviaste tu solicitud.' : f.estado === 'abierta' ? 'Avísale a los jefes que quieres ir.' : 'Las solicitudes para esta fecha están cerradas.', !est && f.estado === 'abierta' ? `<button class="btn sm pri" data-fecha="${f.id}">${ic('cup','s')}Pedir unirme</button>` : '')}
       ${paso(3, est === 'aceptado' ? 'done' : est === 'rechazado' ? 'no' : est ? 'now' : 'wait', 'Confirmación de los jefes', est === 'aceptado' ? 'Quedaste. Tu pase está abajo.' : est === 'rechazado' ? 'Esta vez no quedaste. Tendrás más prioridad la próxima.' : est ? 'Están revisando los cupos. Te aparece aquí cuando confirmen.' : 'Después de pedir unirte, los jefes confirman los cupos.')}
     </ol>${est ? `<button class="lk small" data-fecha="${f.id}" style="margin-top:4px">Ver detalles de la salida</button>` : ''}</div>`;
@@ -687,6 +697,17 @@ function hojaAvisos(){
   const L6 = listaAvisos();
   openSheet('Avisos', L6.length ? `<div class="stack">${L6.map(a => `<div class="aviso ${a.k === 'no' ? 'cancel' : a.k === 'ok' ? 'okav' : ''}"><b>${esc(a.de)}${a.ts > 1 ? ' · ' + hace(a.ts) : ''}</b><p>${esc(a.t)}</p></div>`).join('')}</div>` : `<div class="empty">${ic('bell')}No tienes avisos.</div>`);
   setTimeout(render, 450);
+}
+/* PDF de autorización: se comparte con la hoja nativa (imprimir, guardar, WhatsApp) sin salir de la app */
+let PDF_FILE = null;
+function precargarPDF(){ if (PDF_FILE) return; fetch(CONFIG.pdfAutorizacion).then(r => r.ok ? r.blob() : null).then(b => { if (b) PDF_FILE = new File([b], 'Autorizacion-Cafe-Solidario.pdf', { type:'application/pdf' }); }).catch(() => {}); }
+async function abrirPDF(){
+  if (PDF_FILE && navigator.canShare && navigator.canShare({ files:[PDF_FILE] })) {
+    try { await navigator.share({ files:[PDF_FILE], title:'Autorización Café Solidario' }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  openSheet('Autorización', `<p class="muted" style="margin-bottom:14px">Imprímela, que la firme tu apoderado y entrégasela a tu jefe.</p>
+    <a class="btn pri block" href="${CONFIG.pdfAutorizacion}" target="_blank" rel="noopener">${ic('dl','s')}Abrir PDF en otra pestaña</a>
+    <button class="btn soft block" style="margin-top:10px" data-close>Volver a la app</button>`);
 }
 function oracionHTML(){ return `<div class="prayer"><h2>Oración Café Solidario</h2>${CONFIG.oracion.map(l => `<p>${esc(l)}</p>`).join('')}</div>`; }
 const destinoDe = s => s && s.destino_id && (ST.destinos || (ST.c && ST.c.destinos) || []).find(d => d.id === s.destino_id);
@@ -735,14 +756,14 @@ function vAlumno(){
     const misIds = new Set(ST.mis.map(s => s.fecha_id)), avisos = ST.avisos.filter(a => misIds.has(a.fecha_id)).slice(0, 3);
     const sp = prox ? miSol(prox.id) : null, est = sp ? sp.estado : null;
     let foco;
-    if (mio) foco = (vigenteA() ? '' : `<a class="estado warn" style="margin:0;text-decoration:none" href="${CONFIG.pdfAutorizacion}" target="_blank" rel="noopener" download>${ic('pen','s')}Falta tu autorización firmada. Toca para descargarla.</a>`) + pase(mio.f, mio.s) + `<button class="btn soft block" data-act="oracion">${ic('heart','s')}Oración antes de salir</button>`;
+    if (mio) foco = (vigenteA() ? '' : `<button class="estado warn" style="margin:0;text-decoration:none" data-act="pdf">${ic('pen','s')}Falta tu autorización firmada. Toca para descargarla.</button>`) + pase(mio.f, mio.s) + `<button class="btn soft block" data-act="oracion">${ic('heart','s')}Oración antes de salir</button>`;
     else if (!prox) foco = `<div class="card empty">${ic('cal')}Todavía no hay próxima salida.</div>`;
     else {
       const cab = `<span class="muted small">Próxima salida</span><h2 style="margin-top:4px">${cap(dLarga(prox.dia))}</h2><p class="meta" style="margin-top:4px">${ic('clock','s')}${t5(prox.inicio)} a ${t5(prox.fin)}</p>`;
       if (est === 'solicitud') foco = `<div class="card pad20 focus wait">${cab}<div class="estado">${ic('clock','s')}Solicitud enviada. Esperando a los jefes.</div><button class="lk small" data-fecha="${prox.id}">Ver detalles</button></div>`;
       else if (est === 'rechazado') foco = `<div class="card pad20 focus">${cab}<div class="estado no">Esta vez no quedaste.</div><button class="btn soft block" data-tab="fechas">Ver otras fechas</button></div>`;
       else if (!vigenteA()) foco = `<div class="card pad20 focus">${cab}<div class="estado warn">${ic('pen','s')}Falta tu autorización firmada.</div>
-        <a class="btn yel block" href="${CONFIG.pdfAutorizacion}" target="_blank" rel="noopener" download>${ic('dl','s')}Descargar autorización</a>
+        <button class="btn yel block" data-act="pdf">${ic('dl','s')}Descargar autorización</button>
         <p class="hint" style="text-align:center">Imprímela, que la firme tu apoderado y entrégasela a tu jefe. <button class="lk small" data-fecha="${prox.id}">Pedir unirme igual</button></p></div>`;
       else if (prox.estado !== 'abierta') foco = `<div class="card pad20 focus">${cab}<div class="estado">Solicitudes cerradas.</div></div>`;
       else foco = `<div class="card pad20 focus">${cab}<button class="btn pri block" data-sol="${prox.id}" style="margin-top:14px">${ic('cup','s')}Pedir unirme</button></div>`;
@@ -1175,6 +1196,7 @@ document.addEventListener('click', conTry(async e => {
       case 'compartir': return compartir();
       case 'oracion': return openSheet('Antes de salir', oracionHTML());
       case 'opciones': return hojaOpciones(f);
+      case 'pdf': return abrirPDF();
       case 'avisos': return hojaAvisos();
       case 'certificado': return imprimirCertificado();
       case 'imprimir': return imprimirHoja(f);
