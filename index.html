@@ -318,6 +318,23 @@ details.how p{margin-top:10px;line-height:1.55}
 @media (max-width:420px){.pass-bot{flex-direction:column;align-items:flex-start}.qr{width:160px;height:160px;align-self:center}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 /* real */
+a.btn{text-decoration:none}
+.prayer{text-align:center;padding:10px 6px 4px;background:var(--crema);border-radius:20px;color:var(--cink);padding:22px 16px}
+.prayer h2{color:var(--cink);margin-bottom:12px}
+.prayer p{font-size:16px;line-height:1.5;color:var(--ink)}
+.pass-dest{display:flex;flex-direction:column;gap:2px;padding:14px 20px;background:var(--ysoft);border-top:1px solid var(--line)}
+.pass-dest span{font-size:12.5px;font-weight:700;color:var(--yink);letter-spacing:.04em}
+.pass-dest b{font-family:var(--display);font-size:20px}
+.pass-dest small{color:var(--ink2)}
+.authbtn{flex:none;min-width:96px;height:40px;border-radius:12px;padding:0 12px;font-weight:700;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--redsoft);color:var(--red);transition:background .2s,color .2s}
+.authbtn.on{background:var(--green2);color:#fff}
+.ghead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;background:var(--crema);color:var(--cink)}
+.ghead b{display:block;font-family:var(--display);font-size:18px;color:var(--ink)}
+.ghead small{color:var(--ink2);font-size:13px}
+.dsel{flex:none;max-width:150px;height:40px;border-radius:12px;border:0;background:var(--sunk);padding:0 10px;font-size:14px}
+.inl{display:block;width:100%;border:0;background:var(--sunk);border-radius:10px;height:38px;padding:0 10px;font-size:15px;font-weight:600;margin-bottom:6px}
+.inl.sm2{font-weight:400;font-size:14px;height:34px}
+@media (min-width:860px){.cgrid:not(.two){grid-template-columns:repeat(2,1fr)}}
 .land{display:grid;gap:10px;margin-top:14px}
 .land .r{background:var(--surface);border-radius:18px;box-shadow:var(--shadow)}
 .load{display:grid;place-items:center;min-height:60vh;color:var(--ink2)}
@@ -339,6 +356,8 @@ details.how p{margin-top:10px;line-height:1.55}
 const CONFIG = {
   supabaseUrl: 'https://nconhqyzfcetpxvycibz.supabase.co',
   supabaseKey: 'sb_publishable_NwPvBjFEq_p9ae2brcwSKA_ez4UGZIz',   // clave pública (publishable). Nunca pongas aquí la secret.
+  pdfAutorizacion: 'autorizacion.pdf',  // sube el PDF de la autorización a GitHub con este nombre
+  oracion: ['Señor, hoy nos encomendamos a ti', 'para que, a través de este acto de servicio,', 'podamos reflejar', 'el respeto, amor y dignidad que Jesús nos enseñó.', 'Que cada vaso de café', 'y cada palabra compartida', 'alimenten no solo el cuerpo,', 'sino también el espíritu y el alma', 'de quienes están en situación de vulnerabilidad.', 'Ayúdanos a construir lazos,', 'ofrecer esperanza', 'y demostrar tu amor incondicional,', 'proporcionando momentos de calidez', 'y conexión humana.', 'Amén.'],
   otpLen: 6,                           // largo del código: debe ser igual a 'Email OTP Length' en Supabase
   sesionDias: 30,                      // días que el celular queda recordado antes de pedir código otra vez
   colegios: { vd:{ nombre:'Verbo Divino' }, vm:{ nombre:'Villa María' } },
@@ -372,6 +391,7 @@ const P = {
   copy:'<rect x="8" y="8" width="13" height="13" rx="3"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>', heart:'<path d="M12 20s-8-4.6-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.4 12 20 12 20Z"/>',
   mail:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/>', shield:'<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6Z"/><path d="m9 12 2 2 4-4"/>',
   home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h5v-6h4v6h5V9.5"/>', cal:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  dl:'<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
   plus:'<path d="M12 5v14M5 12h14"/>', trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>', back:'<path d="m15 6-6 6 6 6"/>', cr:'<path d="m9 6 6 6-6 6"/>',
   ban:'<circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/>', key:'<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3"/>', gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
   qr:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/>',
@@ -432,7 +452,7 @@ function topBar(sub, derecha = ''){
     <small>${sub || `<span class="dot" style="background:var(--vd)"></span>${nomCol('vd')}<span class="dot" style="background:var(--vm);margin-left:4px"></span>${nomCol('vm')}`}</small></div>${derecha}</header>`;
 }
 function vIngreso(){
-  const titulos = { alumno:'Entra con tu correo del colegio', apoderado:'Entra con tu correo', coord:'Entrar a coordinación' };
+  const titulos = { alumno:'Entra con tu correo del colegio', apoderado:'Entra con tu correo', coord:'Entrar como jefe o coordinación' };
   const sub = { alumno:'Te mandamos un código a tu correo. No hay contraseñas.', apoderado:'Usa el correo que tienes registrado en el colegio. Ahí te llega el código.', coord:'Solo pueden entrar los correos autorizados por cada colegio.' };
   let body;
   if (L.paso === 'inicio') return `<div class="shell view">${topBar()}
@@ -440,15 +460,13 @@ function vIngreso(){
       <h1 style="color:#fff">Café Solidario</h1><p>Cada semana salimos a compartir un café y una conversación.</p></div>
     <div class="land">
       <button class="r" data-modo="alumno"><div class="ri cof">${ic('user')}</div><div class="rt"><b>Soy alumno o alumna</b><small>Pide unirte a las salidas y ve tu pase</small></div>${ic('cr','s chev')}</button>
-      <button class="r" data-modo="apoderado"><div class="ri">${ic('pen')}</div><div class="rt"><b>Soy apoderado</b><small>Firma la autorización de tu hijo o hija</small></div>${ic('cr','s chev')}</button>
-    </div>
-    <p class="foot"><button class="lk" data-modo="coord">Entrar a coordinación</button></p></div>`;
+      <button class="r" data-modo="coord"><div class="ri">${ic('shield')}</div><div class="rt"><b>Soy jefe o coordinación</b><small>Acepta solicitudes, arma los grupos y marca autorizaciones</small></div>${ic('cr','s chev')}</button>
+    </div><p class="foot" style="margin-top:6px;font-size:11.5px">Versión 4</p></div>`;
   if (L.paso === 'correo') body = `
-    <label class="field"><span>Correo</span><input id="lmail" type="email" inputmode="email" autocomplete="email" value="${esc(L.email)}" placeholder="${L.modo === 'apoderado' ? 'tu.correo@gmail.com' : 'nombre@colegio.cl'}"></label>
-    ${L.modo === 'alumno' ? `<label class="field" id="invf" ${L.inv ? '' : 'hidden'}><span>Código de invitación</span><input id="linv" autocapitalize="characters" value="${esc(L.inv)}" placeholder="Ej: CAFE-VM-2026"></label>` : ''}
+    <label class="field"><span>Correo</span><input id="lmail" type="email" inputmode="email" autocomplete="email" value="${esc(L.email)}" placeholder="nombre@colegio.cl"></label>
     <div class="err" id="lerr"></div>
     <button class="btn pri block" id="lgo" ${L.ocupado ? 'disabled' : ''}>${L.ocupado ? 'Enviando…' : 'Enviar código'}</button>
-    ${L.modo === 'alumno' ? `<p class="hint" style="text-align:center;margin-top:12px">¿No tienes correo del colegio? <button class="lk" id="linvbtn">Tengo un código de invitación</button></p>` : ''}`;
+`;
   else body = `
     <p class="muted small">Mandamos un código de ${CONFIG.otpLen} dígitos a <b style="color:var(--ink)">${esc(L.email)}</b>. Revisa también la carpeta de spam.</p>
     <input class="otp" id="lotp" inputmode="numeric" autocomplete="one-time-code" maxlength="${CONFIG.otpLen}" placeholder="${'·'.repeat(CONFIG.otpLen)}" aria-label="Código" style="margin-top:16px">
@@ -468,7 +486,7 @@ function bindIngreso(){
       const e = $('#lmail').value.trim().toLowerCase(); L.email = e; L.inv = $('#linv') ? $('#linv').value.trim().toUpperCase() : '';
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return err('Escribe un correo válido');
       if (L.modo === 'alumno' && !L.inv) {
-        try { const doms = await q(sb.from('dominios').select('dominio')); if (!doms.some(d => d.dominio === e.split('@')[1])) return err('Usa el correo de tu colegio, o toca "Tengo un código de invitación"'); } catch (x) {}
+        try { const doms = await q(sb.from('dominios').select('dominio')); if (!doms.some(d => d.dominio === e.split('@')[1])) return err('Usa tu correo del colegio (Verbo Divino o Villa María)'); } catch (x) {}
       }
       L.ocupado = true; render();
       const { error } = await sb.auth.signInWithOtp({ email:e, options:{ shouldCreateUser:true } });
@@ -526,21 +544,22 @@ async function cargarRol(){
    ========================================================= */
 async function cargarAlumno(){
   const uid = ST.alumno.id;
-  const [fechas, mis, aut, cupos, avisos, aj] = await Promise.all([
+  const [fechas, mis, aut, cupos, avisos, aj, destinos] = await Promise.all([
     q(sb.from('fechas').select('*').order('dia')),
     q(sb.from('solicitudes').select('*').eq('alumno_id', uid)),
     q(sb.from('autorizaciones').select('estado,apoderado_nombre,firmada_en,firmada_por,vence').eq('alumno_id', uid).maybeSingle()),
     rpc('cupos'),
     q(sb.from('avisos').select('*').order('creado', { ascending:false })),
     q(sb.from('ajustes').select('*').eq('id', 1).maybeSingle()),
+    q(sb.from('destinos').select('*').order('orden')),
   ]);
-  ST.fechas = fechas; ST.mis = mis; ST.aut = aut; ST.avisos = avisos; ST.ajustes = aj || {};
+  ST.destinos = destinos; ST.fechas = fechas; ST.mis = mis; ST.aut = aut; ST.avisos = avisos; ST.ajustes = aj || {};
   ST.cupos = {}; cupos.forEach(c => { (ST.cupos[c.fecha_id] = ST.cupos[c.fecha_id] || {})[c.colegio] = c; });
 }
 const esPasada = f => fromIso(f.dia) < hoy();
 const futurasA = () => ST.fechas.filter(f => !esPasada(f));
 const miSol = id => ST.mis.find(s => s.fecha_id === id) || null;
-const vigenteA = () => ST.aut && ST.aut.estado === 'vigente' && fromIso(ST.aut.vence) >= hoy();
+const vigenteA = () => !!(ST.alumno && ST.alumno.autorizado);
 function histDe(sols, fechas, aj){
   const faltasPara = (aj && aj.faltas_para_bajar) || 2, dias = (aj && aj.dias_prioridad_baja) || 30;
   let veces = 0; const faltas = [];
@@ -571,13 +590,12 @@ function bindPerfil(){
 }
 function bannerAut(){
   if (vigenteA()) return '';
-  const a = ST.aut;
-  if (a && a.estado === 'pendiente') return `<div class="card banner"><div class="ri y">${ic('mail')}</div><div><h3>Esperando a tu apoderado</h3><p>Pídele que entre a esta página, toque "Soy apoderado" y firme con el correo que tiene registrado en el colegio.</p>
-    <div class="btns"><button class="btn sm soft" data-act="compartir">${ic('send','s')}Mandarle el link</button></div></div></div>`;
-  if (a && a.estado === 'revocada') return `<div class="card banner"><div class="ri red">${ic('ban')}</div><div><h3>Tu apoderado revocó la autorización</h3><p>Necesitas una nueva para pedir unirte a una salida.</p><div class="btns"><button class="btn sm yel" data-act="pedir">Pedir otra</button></div></div></div>`;
-  return `<div class="card banner"><div class="ri y">${ic('pen')}</div><div><h3>Falta la autorización de tu apoderado</h3><p>La firma tu apoderado con el correo que tiene registrado en el colegio. Vale todo el año.</p>
-    <div class="btns"><button class="btn sm yel" data-act="pedir">Pedir autorización</button></div></div></div>`;
+  return `<div class="card banner" style="background:var(--ysoft)"><div class="ri y" style="background:var(--y);color:#2B2200">${ic('pen')}</div><div><h3>Falta tu autorización firmada</h3>
+    <p>Descárgala, imprímela, que tu apoderado la firme y entrégasela a tu jefe. Él la marca en la app y listo: vale todo el semestre.</p>
+    <div class="btns"><a class="btn sm yel" href="${CONFIG.pdfAutorizacion}" target="_blank" rel="noopener" download>${ic('dl','s')}Descargar autorización</a></div></div></div>`;
 }
+function oracionHTML(){ return `<div class="prayer"><h2>Oración Café Solidario</h2>${CONFIG.oracion.map(l => `<p>${esc(l)}</p>`).join('')}</div>`; }
+const destinoDe = s => s && s.destino_id && (ST.destinos || (ST.c && ST.c.destinos) || []).find(d => d.id === s.destino_id);
 function tagFecha(f, s){
   if (f.estado === 'cancelada') return `<span class="tag no">No hay café</span>`;
   if (s && s.estado === 'aceptado') return s.regreso ? `<span class="tag ok">${ic('check','s')}Fuiste</span>` : `<span class="tag ok">${ic('check','s')}Aceptado</span>`;
@@ -603,6 +621,7 @@ function pase(f, s){
   return `<div class="pass"><div class="pass-top"><span class="k">Tu pase</span><h2>${cap(dLarga(f.dia))}</h2>
       <div class="m"><span>${ic('clock','s')}${t5(f.inicio)} a ${t5(f.fin)}</span><span>${ic('map','s')}${esc(f.lugar)}</span></div></div>
     <div class="pass-cut" aria-hidden="true"></div>
+    ${destinoDe(s) ? `<div class="pass-dest"><span>Tu grupo</span><b>${esc(destinoDe(s).nombre)}</b><small>Jefe: ${esc(destinoDe(s).jefes || 'por confirmar')}</small></div>` : ''}
     <div class="pass-bot"><div class="qr" aria-label="Código QR para mostrar en portería">${qrSVG('CS1:' + s.qr)}</div>
       <div><p class="small muted">Muéstralo en portería al salir y al volver.</p>
         <ol class="track">${['Aceptado','Salida','Regreso'].map((t, k) => `<li class="${k < paso ? 'on' : ''}"><i></i>${t}${k === 1 && s.salida ? ` <span class="muted">${hhmm(s.salida)}</span>` : ''}${k === 2 && s.regreso ? ` <span class="muted">${hhmm(s.regreso)}</span>` : ''}</li>`).join('')}</ol></div></div></div>`;
@@ -624,6 +643,7 @@ function vAlumno(){
           <p class="meta" style="margin-top:6px">${ic('clock','s')}${t5(prox.inicio)} a ${t5(prox.fin)}</p>
           <div class="btns" style="margin-top:14px"><button class="btn pri" data-fecha="${prox.id}">${ic('cup','s')}Ver y pedir unirme</button><button class="btn soft" data-tab="fechas">Todas las fechas</button></div></div>`
         : `<div class="card empty">${ic('cal')}La coordinación todavía no publica nuevas fechas.</div>`}
+      ${mio ? `<button class="card banner" data-act="oracion" style="width:100%;text-align:left"><div class="ri cof">${ic('heart')}</div><div><h3>Oración antes de salir</h3><p>La rezamos todos juntos en portería.</p></div></button>` : ''}
       ${pend.map(f => `<button class="card banner" data-fecha="${f.id}" style="width:100%;text-align:left"><div class="ri y">${ic('inbox')}</div><div><h3>Solicitud enviada para el ${dLarga(f.dia)}</h3><p>La coordinación confirma los cupos antes de la salida.</p></div></button>`).join('')}
       ${fut.filter(f => f.estado === 'cancelada').slice(0, 1).map(f => `<div class="aviso cancel"><b>No hay café el ${dLarga(f.dia)}</b><p>${esc(f.motivo || '')}</p></div>`).join('')}
       ${avisos.map(a => `<div class="aviso"><b>${esc(a.autor)} · ${hace(new Date(a.creado).getTime())}</b><p>${esc(a.texto)}</p></div>`).join('')}</div>`;
@@ -637,8 +657,9 @@ function vAlumno(){
     body = `<div style="display:flex;gap:14px;align-items:center"><div class="avatar av ${u.colegio}" style="width:58px;height:58px;font-size:20px">${ini(u.nombre)}</div>
         <div><h2>${esc(u.nombre)}</h2><p class="meta">${esc(u.curso)}, ${nomCol(u.colegio)}</p></div></div>
       <div class="sec"><h2>Autorización</h2></div>
-      ${vigenteA() ? `<div class="card pad16"><span class="stamp">${ic('check','s')}Vigente hasta el ${fromIso(a.vence).getDate()} de ${MES[fromIso(a.vence).getMonth()]}</span>
-          <p class="meta" style="margin-top:12px">Firmada por ${esc(a.apoderado_nombre || '')}${a.firmada_en ? `, el ${new Date(a.firmada_en).getDate()} de ${MES[new Date(a.firmada_en).getMonth()]}` : ''}.</p></div>` : bannerAut()}
+      ${vigenteA() ? `<div class="card pad16"><span class="stamp">${ic('check','s')}Autorización entregada</span>
+          <p class="meta" style="margin-top:12px">Tu jefe recibió la autorización firmada${u.autorizado_en ? ` el ${new Date(u.autorizado_en).getDate()} de ${MES[new Date(u.autorizado_en).getMonth()]}` : ''}.</p></div>` : bannerAut()}
+      <button class="card r" data-act="oracion" style="margin-top:10px;border-radius:18px"><div class="ri cof">${ic('heart','s')}</div><div class="rt"><b>Oración Café Solidario</b><small>La que rezamos antes de salir</small></div>${ic('cr','s chev')}</button>
       <div class="sec"><h2>Tu voluntariado</h2></div>
       <div class="statrow"><div class="stat"><span class="big">${h.veces}</span><small>${h.veces === 1 ? 'salida' : 'salidas'}</small></div>
         <div class="stat"><span class="big">${h.veces * 3}</span><small>horas aprox.</small></div>
@@ -663,14 +684,14 @@ function hojaFecha(id){
   else if (s && s.estado === 'solicitud') acc = `<button class="btn soft block" data-baja="${id}">Retirar mi solicitud</button><p class="hint" style="text-align:center">La coordinación revisa las solicitudes y confirma los cupos.</p>`;
   else if (s && s.estado === 'rechazado') acc = `<div class="aviso"><b>Esta vez no quedaste</b><p>Había más interesados que cupos. Tendrás más prioridad en la próxima.</p></div>`;
   else if (f.estado === 'cerrada') acc = `<button class="btn soft block" disabled>Solicitudes cerradas</button>`;
-  else if (!vigenteA()) acc = `<button class="btn soft block" disabled>Necesitas la autorización primero</button>`;
-  else acc = `<button class="btn pri block" data-sol="${id}">${ic('cup','s')}Pedir unirme</button><p class="hint" style="text-align:center">${cu.aceptados}/${f['cupos_' + col]} cupos de tu colegio confirmados, ${cu.solicitudes} ${cu.solicitudes === 1 ? 'solicitud' : 'solicitudes'} en revisión.</p>`;
+  else acc = (vigenteA() ? '' : `<div class="aviso" style="margin-bottom:12px"><b>Recuerda tu autorización</b><p>Puedes pedir unirte, pero sin la autorización firmada no puedes salir.</p></div>`) + `<button class="btn pri block" data-sol="${id}">${ic('cup','s')}Pedir unirme</button><p class="hint" style="text-align:center">${cu.aceptados}/${f['cupos_' + col]} cupos de tu colegio confirmados, ${cu.solicitudes} ${cu.solicitudes === 1 ? 'solicitud' : 'solicitudes'} en revisión.</p>`;
   const av = ST.avisos.filter(a => a.fecha_id === id);
   openSheet(cap(dLarga(f.dia)), `
     ${av.map(a => `<div class="aviso" style="margin-bottom:8px"><b>${esc(a.autor)} · ${hace(new Date(a.creado).getTime())}</b><p>${esc(a.texto)}</p></div>`).join('')}
     ${s && s.estado === 'aceptado' && !esPasada(f) ? pase(f, s) + '<div style="height:14px"></div>' : ''}
+    ${!s ? `<div class="rows" style="margin-bottom:12px">${(ST.destinos || []).map(d => `<div class="r"><div class="ri">${ic('map','s')}</div><div class="rt"><b>${esc(d.nombre)}</b><small>Jefe: ${esc(d.jefes || '')}</small></div></div>`).join('')}</div>` : ''}
     <div class="rows" style="margin:4px 0 16px">
-      <div class="r"><div class="ri cof">${ic('clock','s')}</div><div class="rt"><b>${t5(f.inicio)} a ${t5(f.fin)}</b><small>Llega 10 minutos antes</small></div></div>
+      <div class="r"><div class="ri cof">${ic('clock','s')}</div><div class="rt"><b>Salida ${t5(f.inicio)}, regreso ${t5(f.fin)}</b><small>Salimos en furgones. Llega 10 minutos antes</small></div></div>
       <div class="r"><div class="ri cof">${ic('map','s')}</div><div class="rt"><b>${esc(f.lugar)}</b><small>Punto de encuentro y regreso</small></div></div>
       ${f.nota ? `<div class="r"><div class="ri cof">${ic('bell','s')}</div><div class="rt"><b>Nota de la coordinación</b><small>${esc(f.nota)}</small></div></div>` : ''}
     </div>${acc}`);
@@ -754,7 +775,7 @@ function hojaFirma(id){
    COORDINACIÓN
    ========================================================= */
 async function cargarCoord(){
-  const [fechas, sols, alumnos, auts, registro, codigos, actividad, avisos, aj, coords] = await Promise.all([
+  const [fechas, sols, alumnos, auts, registro, codigos, actividad, avisos, aj, coords, destinos] = await Promise.all([
     q(sb.from('fechas').select('*').order('dia')),
     q(sb.from('solicitudes').select('*')),
     q(sb.from('alumnos').select('*').order('nombre')),
@@ -765,15 +786,16 @@ async function cargarCoord(){
     q(sb.from('avisos').select('*').order('creado')),
     q(sb.from('ajustes').select('*').eq('id', 1).maybeSingle()),
     q(sb.from('coordinadores').select('*')),
+    q(sb.from('destinos').select('*').order('orden')),
   ]);
-  ST.c = { fechas, sols, alumnos, auts, registro, codigos, actividad, avisos, aj:aj || {}, coords };
+  ST.c = { fechas, sols, alumnos, auts, registro, codigos, actividad, avisos, aj:aj || {}, coords, destinos };
   ST.c.al = Object.fromEntries(alumnos.map(a => [a.id, a]));
   ST.c.reg = Object.fromEntries(registro.map(r => [r.alumno_email.toLowerCase(), r]));
 }
 const C_ = () => ST.c;
 const fechaC = id => C_().fechas.find(f => f.id === id);
 const solsDe = (id, est, col) => C_().sols.filter(s => s.fecha_id === id && (!est || s.estado === est) && (!col || (C_().al[s.alumno_id] || {}).colegio === col));
-const vigC = id => { const a = C_().auts.find(x => x.alumno_id === id); return a && a.estado === 'vigente' && fromIso(a.vence) >= hoy(); };
+const vigC = id => !!(C_().al[id] && C_().al[id].autorizado);
 const histC = id => histDe(C_().sols.filter(s => s.alumno_id === id), C_().fechas, C_().aj);
 const puntaje = s => { const h = histC(s.alumno_id); return (h.baja ? 1000 : 0) + h.veces * 10 + new Date(s.creada).getTime() / 1e13; };
 function sugeridos(f){
@@ -806,7 +828,7 @@ function persona(f, s, modo, sug){
 function vCoord(){
   const c = C_(); if (!c) return `<div class="load">Cargando…</div>`;
   const t = ST.ctab, nRev = c.fechas.filter(f => !esPasada(f)).reduce((n, f) => n + solsDe(f.id, 'solicitud').length, 0);
-  const tabs = `<nav class="ctabs">${[['resumen','chart','Resumen'],['fechas','cal','Fechas'],['personas','users','Alumnos y apoderados'],['ajustes','gear','Ajustes']].map(([k,i,l]) => `<button class="${t === k && !ST.cfecha ? 'on' : ''}" data-ctab="${k}">${ic(i,'s')}${l}${k === 'fechas' && nRev ? `<span class="n">${nRev}</span>` : ''}</button>`).join('')}</nav>`;
+  const tabs = `<nav class="ctabs">${[['resumen','chart','Resumen'],['fechas','cal','Fechas'],['personas','users','Alumnos'],['ajustes','gear','Ajustes']].map(([k,i,l]) => `<button class="${t === k && !ST.cfecha ? 'on' : ''}" data-ctab="${k}">${ic(i,'s')}${l}${k === 'fechas' && nRev ? `<span class="n">${nRev}</span>` : ''}</button>`).join('')}</nav>`;
   let body;
   const fut = c.fechas.filter(f => !esPasada(f)), pas = c.fechas.filter(esPasada).reverse();
   const fila = f => { const d = fromIso(f.dia); return `<button class="card date ${f.estado === 'cancelada' ? 'off' : ''}" data-open="${f.id}"><div class="dt"><b>${d.getDate()}</b><small>${MESC[d.getMonth()]}</small></div>
@@ -818,21 +840,21 @@ function vCoord(){
         <div class="m"><span>${solsDe(f.id, 'aceptado').length} de ${f.cupos_vd + f.cupos_vm} aceptados</span><span>${solsDe(f.id, 'solicitud').length} solicitudes</span></div>
         <div class="acts"><button class="btn sm yel" data-open="${f.id}" data-dt="solicitudes">Revisar solicitudes</button><button class="btn sm soft" data-open="${f.id}" data-dt="porteria">${ic('scan','s')}Portería</button></div></div>`
       : `<div class="card empty">${ic('cal')}No hay salidas próximas. Crea una en Fechas.</div>`}
-      <div class="statrow" style="margin-top:12px"><div class="stat"><span class="big">${c.alumnos.length}</span><small>alumnos</small></div><div class="stat"><span class="big">${c.auts.filter(a => vigC(a.alumno_id)).length}</span><small>autorizados</small></div><div class="stat"><span class="big">${c.registro.length}</span><small>en el registro</small></div></div></div>
+      <div class="statrow" style="margin-top:12px"><div class="stat"><span class="big">${c.alumnos.length}</span><small>alumnos</small></div><div class="stat"><span class="big">${c.alumnos.filter(a => a.autorizado).length}</span><small>con autorización</small></div><div class="stat" style="${c.alumnos.some(a => !a.autorizado) ? 'background:var(--ysoft)' : ''}"><span class="big">${c.alumnos.filter(a => !a.autorizado).length}</span><small>sin autorización</small></div></div></div>
       <div><div class="sec" style="margin-top:0"><h2>Actividad</h2><button class="lk" data-act="recargar">Actualizar</button></div><div class="rows feed">${c.actividad.map(a => `<div class="r"><div class="rt"><b style="font-weight:500;font-size:14.5px">${esc(a.texto)}</b><small>${hace(new Date(a.creado).getTime())}</small></div></div>`).join('') || '<div class="empty">Sin actividad todavía.</div>'}</div></div></div>`;
   } else if (t === 'fechas') {
     body = `<div class="btns" style="margin-bottom:16px"><button class="btn pri" data-act="nueva">${ic('plus','s')}Nueva fecha</button><button class="btn soft" data-act="mes">${ic('cal','s')}Agregar miércoles del próximo mes</button></div>
       <div class="month">Próximas</div><div class="stack">${fut.map(fila).join('') || '<div class="card empty">No hay fechas próximas.</div>'}</div>
       <div class="month" style="margin-top:24px">Realizadas</div><div class="stack">${pas.map(fila).join('') || '<div class="card empty">Todavía no hay salidas realizadas.</div>'}</div>`;
   } else if (t === 'personas') {
-    const qq = ST.q.trim().toLowerCase(), seg = `<div class="seg" data-seg style="max-width:420px"><button class="${ST.psub === 'alumnos' ? 'on' : ''}" data-psub="alumnos">Alumnos</button><button class="${ST.psub === 'registro' ? 'on' : ''}" data-psub="registro">Registro de apoderados</button><i></i></div>`;
-    if (ST.psub === 'alumnos') body = seg + `<label class="search">${ic('users','s')}<input id="aq" placeholder="Buscar" value="${esc(ST.q)}"></label><div class="rows">${c.alumnos.filter(u => !qq || (u.nombre + u.email).toLowerCase().includes(qq)).map(u => { const a = c.auts.find(x => x.alumno_id === u.id), h = histC(u.id);
-      return `<div class="person" style="align-items:flex-start"><div class="avatar av ${u.colegio}">${ini(u.nombre)}</div><div class="pt"><b>${esc(u.nombre)}</b><small><span class="tag ${u.colegio}">${nomCol(u.colegio)}</span>${esc(u.curso)}, ${esc(u.email)}</small>
-        <small>${vigC(u.id) ? `<span class="tag ok">Autorizado por ${esc(a.apoderado_nombre || '')}</span>` : a && a.estado === 'pendiente' ? '<span class="tag warn">Esperando firma</span>' : '<span class="tag no">Sin autorización</span>'}<span class="tag">Fue ${h.veces}</span>${h.recientes.length ? `<span class="tag ${h.baja ? 'no' : 'warn'}">${h.recientes.length} faltas</span>` : ''}${c.reg[u.email.toLowerCase()] ? '' : '<span class="tag no">Sin apoderado en registro</span>'}</small>
-        ${a && a.firma ? `<img class="sigimg" src="${a.firma}" alt="Firma">` : ''}</div></div>`; }).join('') || '<div class="empty">Sin alumnos todavía.</div>'}</div>`;
-    else body = seg + `<div class="btns" style="margin-bottom:12px"><button class="btn pri" data-act="addreg">${ic('plus','s')}Agregar apoderado</button><button class="btn soft" data-act="importar">${ic('copy','s')}Pegar desde Excel</button></div>
-      <label class="search">${ic('users','s')}<input id="aq" placeholder="Buscar" value="${esc(ST.q)}"></label>
-      <div class="rows">${c.registro.filter(r => !qq || (r.alumno_email + r.nombre).toLowerCase().includes(qq)).map(r => `<div class="r"><div class="ri">${ic('user','s')}</div><div class="rt"><b>${esc(r.nombre)}</b><small>Apoderado de ${esc(r.alumno_email)}</small><small>RUT ${esc(r.rut)}, ${esc(r.correo)}${r.celular ? ', ' + esc(r.celular) : ''}</small></div><button class="btn sm soft" data-delreg="${esc(r.alumno_email)}" aria-label="Quitar">${ic('trash','s')}</button></div>`).join('') || '<div class="empty">El registro está vacío. Agrega a los apoderados para que puedan firmar.</div>'}</div>`;
+    const qq = ST.q.trim().toLowerCase(), sin = ST.psub === 'sin';
+    const lista = c.alumnos.filter(u => (!sin || !u.autorizado) && (!qq || (u.nombre + u.email + u.curso).toLowerCase().includes(qq)));
+    body = `<div class="aviso" style="margin-bottom:12px"><b>Autorización en papel</b><p>Cuando un alumno te entregue la autorización firmada, toca el botón para marcarla. Sin eso no puede salir en portería.</p></div>
+      <div class="chips"><button class="chip ${!sin ? 'on' : ''}" data-psub="todos">Todos ${c.alumnos.length}</button><button class="chip ${sin ? 'on' : ''}" data-psub="sin">Sin autorización ${c.alumnos.filter(a => !a.autorizado).length}</button></div>
+      <label class="search">${ic('users','s')}<input id="aq" placeholder="Buscar por nombre, curso o correo" value="${esc(ST.q)}"></label>
+      <div class="rows">${lista.map(u => { const h = histC(u.id);
+        return `<div class="person"><div class="avatar av ${u.colegio}">${ini(u.nombre)}</div><div class="pt"><b>${esc(u.nombre)}</b><small><span class="tag ${u.colegio}">${nomCol(u.colegio)}</span>${esc(u.curso)}<span class="tag">Fue ${h.veces}</span>${h.recientes.length ? `<span class="tag ${h.baja ? 'no' : 'warn'}">${h.recientes.length} faltas</span>` : ''}</small></div>
+          <button class="authbtn ${u.autorizado ? 'on' : ''}" data-aut="${u.id}" data-v="${u.autorizado ? 0 : 1}" aria-pressed="${u.autorizado}">${u.autorizado ? ic('check','s') + 'Tiene' : 'No tiene'}</button></div>`; }).join('') || '<div class="empty">Nadie en esta lista.</div>'}</div>`;
   } else {
     const aj = c.aj;
     body = `<div class="cgrid two"><div><div class="sec" style="margin-top:0"><h2>Valores por defecto</h2></div>
@@ -841,8 +863,11 @@ function vCoord(){
         <div class="grid2" style="margin-top:12px"><label class="field"><span>Cupos ${nomCol('vd')}</span><input id="dCvd" type="number" min="0" value="${aj.cupos_vd}"></label><label class="field"><span>Cupos ${nomCol('vm')}</span><input id="dCvm" type="number" min="0" value="${aj.cupos_vm}"></label></div>
         <button class="btn soft block" style="margin-top:12px" data-act="guardaraj">Guardar</button></div>
       <div class="sec"><h2>Coordinadores</h2><small>Se agregan en Supabase</small></div><div class="rows">${c.coords.map(k => `<div class="r"><div class="ri">${ic('shield','s')}</div><div class="rt"><b>${esc(k.nombre)}</b><small>${esc(k.email)}</small></div></div>`).join('')}</div></div>
-      <div><div class="sec" style="margin-top:0"><h2>Códigos de invitación</h2></div><div class="rows">${c.codigos.map(k => `<div class="r"><div class="ri ${k.activo ? 'y' : ''}">${ic('key','s')}</div><div class="rt"><b>${esc(k.codigo)}</b><small>${nomCol(k.colegio)}, ${k.usos} usos</small></div><button class="btn sm ${k.activo ? 'danger' : 'soft'}" data-cod="${esc(k.codigo)}" data-v="${k.activo ? 0 : 1}">${k.activo ? 'Desactivar' : 'Activar'}</button></div>`).join('') || '<div class="empty">Sin códigos.</div>'}</div>
-      <div class="btns" style="margin-top:10px"><button class="btn soft" data-newcod="vm">${ic('plus','s')}Código ${nomCol('vm')}</button><button class="btn soft" data-newcod="vd">${ic('plus','s')}Código ${nomCol('vd')}</button></div></div></div>`;
+      <div><div class="sec" style="margin-top:0"><h2>Destinos y jefes</h2></div>
+      <div class="rows">${c.destinos.map(d => `<div class="r" style="flex-wrap:wrap"><div class="ri">${ic('map','s')}</div><div class="rt" style="min-width:160px"><input class="inl" data-dn="${d.id}" value="${esc(d.nombre)}" aria-label="Nombre del destino"><input class="inl sm2" data-dj="${d.id}" value="${esc(d.jefes || '')}" placeholder="Jefes" aria-label="Jefes"></div>
+        <button class="btn sm soft" data-dsave="${d.id}">Guardar</button><button class="btn sm danger" data-ddel="${d.id}" aria-label="Eliminar destino">${ic('trash','s')}</button></div>`).join('') || '<div class="empty">Sin destinos.</div>'}</div>
+      <button class="btn soft" style="margin-top:10px" data-act="adddest">${ic('plus','s')}Agregar destino</button>
+      </div></div>`;
   }
   return `<div class="shell wide view"><header class="top"><div class="mark">${ic('cup')}</div><div class="t"><b>Coordinación</b><small>${esc(ST.email)}</small></div><button class="btn sm line" data-act="salir">${ic('out','s')}Salir</button></header>${tabs}${body}</div>`;
 }
@@ -855,13 +880,20 @@ function vFechaC(f){
     panel = `<div class="aviso" style="margin-bottom:12px;background:var(--crema)"><b style="color:var(--cink)">Prioridad justa</b><p class="small">Ordenadas por quién ha ido menos. Quienes faltaron sin avisar quedan al final.</p></div>
       ${sug.size ? `<button class="btn yel block" style="margin-bottom:12px" data-act="aceptsug">${ic('star','s')}Aceptar sugeridos (${sug.size})</button>` : ''}
       <div class="rows">${L3.map(s => persona(f, s, 'sol', sug.has(s.id))).join('') || `<div class="empty">${ic('inbox')}No hay solicitudes por revisar.</div>`}</div>`;
+  } else if (dt === 'grupos') {
+    const ac = solsDe(f.id, 'aceptado'), dests = C_().destinos, sel = s => `<select class="dsel" data-dest="${s.id}" aria-label="Destino">${['<option value="">Sin grupo</option>'].concat(dests.map(d => `<option value="${d.id}" ${s.destino_id === d.id ? 'selected' : ''}>${esc(d.nombre)}</option>`)).join('')}</select>`;
+    const fila = s => { const u = C_().al[s.alumno_id] || {}; return `<div class="person"><div class="avatar av ${u.colegio}">${ini(u.nombre || '?')}</div><div class="pt"><b>${esc(u.nombre)}</b><small><span class="tag ${u.colegio}">${nomCol(u.colegio)}</span>${esc(u.curso)}${vigC(s.alumno_id) ? '' : ' <span class="tag no">Sin autorización</span>'}</small></div>${sel(s)}</div>`; };
+    const sinG = ac.filter(s => !dests.some(d => d.id === s.destino_id));
+    panel = `<div class="btns" style="margin-bottom:12px"><button class="btn yel" data-act="repartir">${ic('users','s')}Repartir automático</button><button class="btn soft" data-act="copiargrupos">${ic('copy','s')}Copiar para WhatsApp</button></div>
+      <div class="cgrid">${dests.map(d => { const L4 = ac.filter(s => s.destino_id === d.id); return `<div class="card" style="overflow:hidden"><div class="ghead"><div><b>${esc(d.nombre)}</b><small>Jefe: ${esc(d.jefes || 'sin asignar')}</small></div><span class="tag cof">${L4.length}</span></div>${L4.map(fila).join('') || '<div class="empty small">Nadie asignado.</div>'}</div>`; }).join('')}
+      ${sinG.length ? `<div class="card" style="overflow:hidden"><div class="ghead" style="background:var(--ysoft)"><div><b>Sin grupo</b><small>Elige un destino para cada uno</small></div><span class="tag warn">${sinG.length}</span></div>${sinG.map(fila).join('')}</div>` : ''}</div>`;
   } else if (dt === 'aceptados') panel = `<div class="rows">${solsDe(f.id, 'aceptado').map(s => persona(f, s, 'acep')).join('') || '<div class="empty">Todavía no aceptas a nadie.</div>'}</div>`;
   else {
     const ac = solsDe(f.id, 'aceptado'), sal = ac.filter(s => s.salida).length, reg = ac.filter(s => s.regreso).length, faltan = ac.filter(s => s.salida && !s.regreso);
     panel = `<div class="seg" data-seg><button class="${ST.porteria === 'salida' ? 'on' : ''}" data-pmode="salida">Salida</button><button class="${ST.porteria === 'regreso' ? 'on' : ''}" data-pmode="regreso">Regreso</button><i></i></div>
       <div class="statrow" style="margin-bottom:12px"><div class="stat"><span class="big">${sal}/${ac.length}</span><small>salieron</small></div><div class="stat"><span class="big">${reg}/${sal}</span><small>volvieron</small></div><div class="stat" style="${faltan.length ? 'background:var(--redsoft)' : ''}"><span class="big">${faltan.length}</span><small>faltan por volver</small></div></div>
       <div class="scanbox" id="scanbox"><video id="vid" playsinline muted></video><canvas id="scv" hidden></canvas>
-        <div class="scanidle">${ic('qr')}<p>Escanea el pase de cada alumno al ${ST.porteria === 'salida' ? 'salir' : 'volver'}</p><button class="btn pri" data-act="camara">${ic('scan','s')}Abrir cámara</button></div></div>
+        <div class="scanidle">${ic('qr')}<p>Escanea el pase de cada alumno al ${ST.porteria === 'salida' ? 'salir' : 'volver'}</p><div class="btns" style="justify-content:center"><button class="btn pri" data-act="camara">${ic('scan','s')}Abrir cámara</button>${ST.porteria === 'salida' ? `<button class="btn soft" data-act="oracion">${ic('heart','s')}Oración</button>` : ''}</div></div></div>
       ${faltan.length && ST.porteria === 'regreso' ? `<div class="aviso cancel" style="margin:12px 0"><b>Faltan por volver</b><p>${faltan.map(s => esc((C_().al[s.alumno_id] || {}).nombre)).join(', ')}</p></div>` : ''}
       <div class="sec" style="margin-top:16px"><h2>Marcar a mano</h2></div>
       <div class="rows">${(ST.porteria === 'regreso' ? ac.filter(s => s.salida) : ac).map(s => persona(f, s, 'port')).join('') || '<div class="empty">Nadie por marcar.</div>'}</div>`;
@@ -873,7 +905,7 @@ function vFechaC(f){
       <div class="btns" style="margin-top:14px"><button class="btn sm soft" data-act="editar">${ic('edit','s')}Editar</button>
         ${past ? '' : f.estado === 'cancelada' ? `<button class="btn sm soft" data-act="reactivar">Reactivar</button>` : `<button class="btn sm soft" data-act="cerrar">${f.estado === 'cerrada' ? 'Reabrir' : 'Cerrar solicitudes'}</button><button class="btn sm soft" data-act="avisoh">${ic('send','s')}Aviso</button><button class="btn sm danger" data-act="cancelar">${ic('ban','s')}No hay café</button>`}
         <button class="btn sm danger" data-act="eliminar">${ic('trash','s')}Eliminar</button><button class="btn sm soft" data-act="copiar">${ic('copy','s')}Copiar lista</button></div></div>
-    ${f.estado === 'cancelada' ? '' : `<nav class="dtabs">${[['solicitudes',`Solicitudes${nS ? ` <span class="n">${nS}</span>` : ''}`],['aceptados',`Aceptados ${nA}`],['porteria','Portería']].map(([k,l]) => `<button class="${dt === k ? 'on' : ''}" data-dt2="${k}">${l}</button>`).join('')}</nav>${panel}`}`;
+    ${f.estado === 'cancelada' ? '' : `<nav class="dtabs">${[['solicitudes',`Solicitudes${nS ? ` <span class="n">${nS}</span>` : ''}`],['aceptados',`Aceptados ${nA}`],['grupos','Grupos'],['porteria','Portería']].map(([k,l]) => `<button class="${dt === k ? 'on' : ''}" data-dt2="${k}">${l}</button>`).join('')}</nav>${panel}`}`;
 }
 function hojaFechaC(f){
   const aj = C_().aj, n = !f; f = f || { dia:iso(hoy()), inicio:aj.inicio, fin:aj.fin, lugar:aj.lugar, cupos_vd:aj.cupos_vd, cupos_vm:aj.cupos_vm, nota:'' };
@@ -970,6 +1002,21 @@ document.addEventListener('click', conTry(async e => {
       case 'salir': return salir();
       case 'pedir': { const m = await rpc('pedir_autorizacion'); await cargarAlumno(); render(); return compartir(m); }
       case 'compartir': return compartir();
+      case 'oracion': return openSheet('Antes de salir', oracionHTML());
+      case 'adddest': await q(sb.from('destinos').insert({ nombre:'Nuevo destino', jefes:'', orden:C_().destinos.length + 1 })); return recargar('Destino agregado');
+      case 'repartir': {
+        const dests = C_().destinos; if (!dests.length) return toast('Primero crea los destinos en Ajustes');
+        const ac = solsDe(f.id, 'aceptado'), cuenta = Object.fromEntries(dests.map(d => [d.id, ac.filter(s => s.destino_id === d.id).length]));
+        const sinG = ac.filter(s => !cuenta.hasOwnProperty(s.destino_id)).sort((a, b) => ((C_().al[a.alumno_id] || {}).colegio || '').localeCompare((C_().al[b.alumno_id] || {}).colegio || ''));
+        if (!sinG.length) return toast('Todos ya tienen grupo');
+        for (const s of sinG) { const d = dests.slice().sort((x, y) => cuenta[x.id] - cuenta[y.id])[0]; cuenta[d.id]++; await q(sb.from('solicitudes').update({ destino_id:d.id }).eq('id', s.id)); }
+        return recargar(`Repartimos a ${sinG.length} personas`);
+      }
+      case 'copiargrupos': {
+        const ac = solsDe(f.id, 'aceptado'), txt = [`☕ Café Solidario, ${dLarga(f.dia)}`, `Salida ${t5(f.inicio)} desde ${f.lugar}. Regreso ${t5(f.fin)}.`, '']
+          .concat(C_().destinos.flatMap(d => [`*${d.nombre}* (jefe: ${d.jefes || '-'})`].concat(ac.filter(s => s.destino_id === d.id).map(s => `- ${(C_().al[s.alumno_id] || {}).nombre}`), [''])));
+        return navigator.clipboard.writeText(txt.join('\n')).then(() => toast('Grupos copiados. Pégalos en WhatsApp'));
+      }
       case 'recargar': return recargar('Actualizado');
       case 'nueva': return hojaFechaC(null);
       case 'editar': return hojaFechaC(f);
@@ -1012,7 +1059,10 @@ document.addEventListener('click', conTry(async e => {
   if ((el = t.closest('[data-dt2]'))) { ST.dtab = el.dataset.dt2; return render(); }
   if ((el = t.closest('[data-pmode]'))) { ST.porteria = el.dataset.pmode; return render(); }
   if ((el = t.closest('[data-psub]'))) { ST.psub = el.dataset.psub; ST.q = ''; return render(); }
-  if ((el = t.closest('[data-acept]'))) { await q(sb.from('solicitudes').update({ estado:'aceptado' }).eq('id', el.dataset.acept)); return recargar('Aceptado'); }
+  if ((el = t.closest('[data-acept]'))) { const s0 = C_().sols.find(x => x.id === el.dataset.acept); if (s0 && !vigC(s0.alumno_id) && !confirm('Este alumno no tiene la autorización firmada. ¿Aceptarlo igual? Sin ella no podrá salir en portería.')) return; await q(sb.from('solicitudes').update({ estado:'aceptado' }).eq('id', el.dataset.acept)); return recargar('Aceptado'); }
+  if ((el = t.closest('[data-aut]'))) { await rpc('marcar_autorizacion', { p_alumno:el.dataset.aut, p_valor:el.dataset.v === '1' }); return recargar(el.dataset.v === '1' ? 'Autorización marcada' : 'Marcado sin autorización'); }
+  if ((el = t.closest('[data-dsave]'))) { const id = el.dataset.dsave; await q(sb.from('destinos').update({ nombre:$(`[data-dn="${id}"]`).value.trim(), jefes:$(`[data-dj="${id}"]`).value.trim() }).eq('id', id)); return recargar('Destino guardado'); }
+  if ((el = t.closest('[data-ddel]'))) { if (!confirm('¿Eliminar este destino?')) return; await q(sb.from('destinos').delete().eq('id', el.dataset.ddel)); return recargar('Destino eliminado'); }
   if ((el = t.closest('[data-rech]'))) { await q(sb.from('solicitudes').update({ estado:'rechazado' }).eq('id', el.dataset.rech)); return recargar('Le avisamos que esta vez no quedó'); }
   if ((el = t.closest('[data-quitar]'))) { await q(sb.from('solicitudes').update({ estado:'solicitud' }).eq('id', el.dataset.quitar)); return recargar('Volvió a solicitudes'); }
   if ((el = t.closest('[data-perd]'))) { await q(sb.from('solicitudes').update({ perdonada:el.dataset.v === '1' }).eq('id', el.dataset.perd)); return recargar(el.dataset.v === '1' ? 'Falta perdonada' : 'La falta vuelve a contar'); }
@@ -1031,6 +1081,7 @@ document.addEventListener('click', conTry(async e => {
   if ((el = t.closest('[data-cancelok]'))) { const m = $('#cM').value.trim(); if (!m) return $('#cerr2').textContent = 'Escribe el motivo';
     await q(sb.from('fechas').update({ estado:'cancelada', motivo:m }).eq('id', el.dataset.cancelok)); await q(sb.from('avisos').insert({ fecha_id:el.dataset.cancelok, texto:'Esta vez no hay café: ' + m, autor:'Coordinación' })); closeSheet(); return recargar('Salida cancelada'); }
 }));
+document.addEventListener('change', conTry(async e => { const el = e.target.closest('[data-dest]'); if (!el) return; await q(sb.from('solicitudes').update({ destino_id:el.value || null }).eq('id', el.dataset.dest)); await recargar('Grupo actualizado'); }));
 document.addEventListener('input', e => { if (e.target.id === 'aq') { ST.q = e.target.value; const p = e.target.selectionStart; render(); const x = $('#aq'); if (x) { x.focus(); x.setSelectionRange(p, p); } } });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && ST.rol && await sesionVencida()) { Object.assign(ST, { rol:null, alumno:null, c:null }); L.paso = 'inicio'; render(); } });
