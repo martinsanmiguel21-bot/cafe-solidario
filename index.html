@@ -415,8 +415,6 @@ button.estado{width:100%;text-align:left;cursor:pointer}
 <div id="app"><div class="load"><div><div class="spin"></div>Cargando…</div></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
 /* =========================================================
    CAFÉ SOLIDARIO — versión conectada a Supabase
@@ -530,7 +528,7 @@ function vIngreso(){
     <div class="land">
       <button class="r" data-modo="alumno"><div class="ri cof">${ic('user')}</div><div class="rt"><b>Soy alumno o alumna</b><small>Pide unirte a las salidas</small></div>${ic('cr','s chev')}</button>
       <button class="r" data-modo="coord"><div class="ri">${ic('shield')}</div><div class="rt"><b>Soy jefe o coordinación</b><small>Organiza las salidas</small></div>${ic('cr','s chev')}</button>
-    </div><p class="foot" style="margin-top:6px;font-size:11.5px">Versión 11</p></div>`;
+    </div><p class="foot" style="margin-top:6px;font-size:11.5px">Versión 13</p></div>`;
   if (L.paso === 'correo') body = `
     <label class="field"><span>Correo</span><input id="lmail" type="email" inputmode="email" autocomplete="email" value="${esc(L.email)}" placeholder="nombre@colegio.cl"></label>
     <div class="err" id="lerr"></div>
@@ -739,8 +737,8 @@ function pase(f, s){
     ${destinoDe(s) ? `<div class="pass-dest"><span>Tu grupo</span><b>${esc(destinoDe(s).nombre)}</b><small>Jefe: ${esc(destinoDe(s).jefes || 'por confirmar')}</small>
       ${(ST.grupo && ST.grupo[f.id] || []).filter(g => !g.es_yo).length ? `<div class="mates"><span>Van contigo</span>${ST.grupo[f.id].filter(g => !g.es_yo).map(g => `<i class="${g.colegio}" title="${esc(g.curso)}">${esc(g.nombre)}</i>`).join('')}</div>` : ''}</div>`
       : s.estado === 'aceptado' ? `<div class="pass-dest"><span>Tu grupo</span><small>Los jefes todavía están armando los grupos. Aquí verás tu destino y con quién vas.</small></div>` : ''}
-    <div class="pass-bot"><div class="qr" aria-label="Código QR para mostrar en portería">${qrSVG('CS1:' + s.qr)}</div>
-      <div><p class="small muted">Muéstralo en portería al salir y al volver.</p>
+    <div class="pass-bot">
+      <div><p class="small muted">Tu jefe marca tu salida y tu regreso en portería.</p>
         <ol class="track">${['Aceptado','Salida','Regreso'].map((t, k) => `<li class="${k < paso ? 'on' : ''}"><i></i>${t}${k === 1 && s.salida ? ` <span class="muted">${hhmm(s.salida)}</span>` : ''}${k === 2 && s.regreso ? ` <span class="muted">${hhmm(s.regreso)}</span>` : ''}</li>`).join('')}</ol></div></div></div>`;
 }
 function vAlumno(){
@@ -1034,9 +1032,6 @@ function vFechaC(f){
       ${grupos.map(g => `<div class="pgroup"><h3>${esc(g.d.nombre)}</h3><div class="pgrid">${g.L.map(btn).join('')}</div></div>`).join('')}
       ${sinG.length ? `<div class="pgroup"><h3>Sin grupo</h3><div class="pgrid">${sinG.map(btn).join('')}</div></div>` : ''}
       ${lista.length ? '' : `<div class="empty">${k === 'regreso' ? 'Todavía nadie ha salido.' : 'No hay aceptados.'}</div>`}
-      <details class="camdet"><summary>${ic('scan','s')}Usar la cámara para escanear pases</summary>
-        <div class="scanbox" id="scanbox" style="margin-top:10px"><video id="vid" playsinline muted></video><canvas id="scv" hidden></canvas>
-        <div class="scanidle"><button class="btn pri" data-act="camara">${ic('scan','s')}Abrir cámara</button></div></div></details>
       ${k === 'salida' ? `<button class="btn soft block" style="margin-top:12px" data-act="oracion">${ic('heart','s')}Oración antes de salir</button>` : ''}`;
 
   }
